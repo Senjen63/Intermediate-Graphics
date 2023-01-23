@@ -7,10 +7,22 @@
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 
 //TODO: Vertex shader source code
-//const char* vertexShaderSource = "...";
+const char* vertexShaderSource =
+"#version 450                                       \n"
+"layout  (location = 0) in vec3 vpos;               \n"
+"void main() {                                      \n"
+"  gl_position = vec4(vpos, 1.0)                    \n"
+"}                                                  \0";
+
+
 
 //TODO: Fragment shader source code
-//const char* fragmentShaderSource = "...";
+const char* fragmentShaderSource = 
+"#version 450                                       \n"
+"out vec4 FragColor;                                \n"
+"void main() {                                      \n"
+"  FragColor = vec4(1.0,1.0,1.0,1.0);               \n"
+"}                                                  \0";
 
 //TODO: Vertex data array
 //const float vertexData[] = { ... };
@@ -31,11 +43,12 @@ int main() {
 
 	glfwSetFramebufferSizeCallback(window, resizeFrameBufferCallback);
 
+	
 
 	//TODO: Create and compile vertex shader
-	//glCreateShader(...)
-	//glShaderSource(...)
-	//glCompileShader(...)
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	glCompileShader(...);
 
 	//TODO: Get vertex shader compilation status and output info log
 	//glGetShaderiv(...)
