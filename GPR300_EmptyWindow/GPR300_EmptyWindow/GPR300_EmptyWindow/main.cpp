@@ -1,7 +1,7 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include <stdio.h> //Error
+#include <stdio.h>
 
 //void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
@@ -9,12 +9,12 @@ void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 //TODO: Vertex shader source code
 const char* vertexShaderSource =
 "#version 450                                       \n"
-"layout(location = 0) in vec3 vpos;                 \n"
-"layout(location = 1) in vec4 vCol;                 \n"
+"layout(location = 0) in vec3 vPos;                 \n"
+"layout(location = 1) in vec4 vColor;               \n"
 "out vec4 Color;                                    \n"
 "void main() {                                      \n"
-"  Color = vCol;                                    \n"
-"  gl_position = vec4(vpos, 1.0)                    \n"
+"  Color = vColor;                                  \n"
+"  gl_Position = vec4(vPos, 1.0);                   \n"
 "}                                                  \0";
 
 
@@ -24,8 +24,10 @@ const char* fragmentShaderSource =
 "#version 450                                       \n"
 "out vec4 FragColor;                                \n"
 "in vec4 Color;                                     \n"
+"uniform float _Time;                               \n"
 "void main() {                                      \n"
-"  FragColor = Color;                               \n"
+"  float t = abs(sin(_Time));                       \n"
+"  FragColor = Color * t;                           \n"
 "}                                                  \0";
 
 //TODO: Vertex data array
@@ -33,9 +35,24 @@ const float vertexData[] =
 {
 	//x    y     z      color(rgba)
 	//Triangle 1
-	-0.5, -0.25, 0.0,  1.0, 0.0, 0.0, 1.0,
-	 0.0, -0.25, 0.0,  0.0, 1.0, 0.0, 1.0,
-	-0.25, 0.25, 0.0,  0.0, 0.0, 1.0, 1.0,
+	-0.5, -0.25,  0.0,  1.0, 1.0, 0.0, 1.0,//Bottom Left
+	 0.0, -0.25,  0.0,  1.0, 1.0, 0.0, 1.0, //Bottom Right
+	-0.25, 0.25,  0.0,  1.0, 1.0, 0.0, 1.0, //Top Center
+
+	////Triangle 2
+	 0.0, -0.25,  0.0,  1.0, 1.0, 0.0, 1.0,
+	 0.5, -0.25,  0.0,  1.0, 1.0, 0.0, 1.0,
+	 0.25, 0.25,  0.0,  1.0, 1.0, 0.0, 1.0,
+
+	//Triangle 3
+	 -0.25, 0.25,  0.0,  1.0, 1.0, 0.0, 1.0,
+	  0.25, 0.25,  0.0,  1.0, 1.0, 0.0, 1.0,
+	  0.0,  0.75,  0.0,  1.0, 1.0, 0.0, 1.0,
+
+	  //Triangle 4
+	 -0.25, 0.25,  0.0,  1.0, 3.0, 0.0, 1.0,
+	  0.25, 0.25,  0.0,  0.0, 1.0, 2.0, 1.0,
+	  0.0,  -0.25,  0.0,  3.0, 0.0, 1.0, 1.0,
 };
 
 int main() {
@@ -57,7 +74,7 @@ int main() {
 	
 
 	//TODO: Create and compile vertex shader
-	GLuint vertexShader = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
 	glCompileShader(vertexShader);
 
@@ -68,7 +85,7 @@ int main() {
 	{
 		GLchar infoLog[512];
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		printf("Failed to compile vertex shader: %s", infoLog);
+		printf("Failed to compile. Vertex Shader Error: %s", infoLog);
 	}
 	
 	
@@ -82,7 +99,7 @@ int main() {
 	if (!success) {
 		GLchar infoLog[512];
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		printf("Fragment Shader Error: %s", infoLog);
+		printf("Failed to compile. Fragment Shader Error: %s", infoLog);
 	}
 
 	//TODO: Create shader program
@@ -100,7 +117,7 @@ int main() {
 	if (!success) {
 		GLchar infoLog[512];
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		printf("Shader Program Link Error: %s", infoLog);
+		printf("Failed to compile. Shader Program Link Error: %s", infoLog);
 	}
 
 	//TODO: Delete vertex + fragment shader objects
@@ -125,17 +142,23 @@ int main() {
 
 	//Color (4 floats, rgba)
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (const void*)(sizeof(float)*3));
-	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.2f, 0.3f, 0.6f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		
+
 		//TODO:Use shader program
 		glUseProgram(shaderProgram);
+
+		//GLint timeLocation = glGetUniformLocation(shaderProgram, "_Time");
+		float time = (float)glfwGetTime();
+		glUniform1f(glGetUniformLocation(shaderProgram, "_Time"), time);
 		
 		//TODO: Draw triangle (3 indices!)
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 12);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -149,4 +172,3 @@ void resizeFrameBufferCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
-
