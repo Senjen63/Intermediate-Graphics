@@ -17,6 +17,7 @@
 
 #include "EW/Shader.h"
 #include "EW/ShapeGen.h"
+#include <random>
 
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
@@ -41,25 +42,53 @@ const float MOUSE_SENSITIVITY = 0.1f;
 glm::vec3 bgColor = glm::vec3(0);
 float exampleSliderFloat = 0.0f;
 
-namespace function
+namespace Transform
 {
+	
 	glm::mat4 scale(glm::vec3 scaling)
 	{
-		
+		srand(time(NULL));
+		float s = rand()  % 100 + 1;
+		float scaleData[] =
+		{
+			s, 0, 0, 0,
+			0, s, 0, 0,
+			0, 0, s, 0,
+			0, 0, 0, 1,
+		};
+
+		glm::mat4 temp;
+		return temp;
 	}
 
 	glm::mat4 roate(glm::vec3 rotation)
 	{
+		srand(time(NULL));
+		float r = rand() % 100 + 1;
+		float u = rand() % 100 + 1;
+		float f = rand() % 100 + 1;
+		float rotationData[] =
+		{
+			r, u, f, 0,
+			r, u, f, 0,
+			r, u, f, 0,
+			0, 0, 0, 1,
+		};
 
+		glm::mat4 temp;
+		return temp;
 	}
 
 	glm::mat4 rotateX(float x)
 	{
-
+		srand(time(NULL));
+		glm::mat4 temp;
+		return temp;
 	}
 
 	glm::mat4 translate(glm::vec3 position)
 	{
+		srand(time(NULL));
 		glm::mat4 m = glm::mat4(1);
 		m[0][0] = position.x;
 		m[0][0] = position.y;
