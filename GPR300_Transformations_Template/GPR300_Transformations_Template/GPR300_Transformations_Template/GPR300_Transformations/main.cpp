@@ -17,7 +17,8 @@
 
 #include "EW/Shader.h"
 #include "EW/ShapeGen.h"
-#include <random>
+
+using namespace std;
 
 void resizeFrameBufferCallback(GLFWwindow* window, int width, int height);
 void keyboardCallback(GLFWwindow* window, int keycode, int scancode, int action, int mods);
@@ -42,62 +43,85 @@ const float MOUSE_SENSITIVITY = 0.1f;
 glm::vec3 bgColor = glm::vec3(0);
 float exampleSliderFloat = 0.0f;
 
-namespace Transform
+namespace Function
 {
 	
 	glm::mat4 scale(glm::vec3 scaling)
 	{
-		srand(time(NULL));
-		float s = rand()  % 100 + 1;
 		float scaleData[] =
 		{
-			s, 0, 0, 0,
-			0, s, 0, 0,
-			0, 0, s, 0,
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
 			0, 0, 0, 1,
 		};
 
-		glm::mat4 temp;
-		return temp;
+		return glm::mat4(1);
 	}
 
 	glm::mat4 roate(glm::vec3 rotation)
 	{
-		srand(time(NULL));
-		float r = rand() % 100 + 1;
-		float u = rand() % 100 + 1;
-		float f = rand() % 100 + 1;
-		float rotationData[] =
+		/*float rotationData[] =
 		{
-			r, u, f, 0,
-			r, u, f, 0,
-			r, u, f, 0,
+			1, 1, 1, 0,
+			1, 1, 1, 0,
+			1, 1, 1, 0,
 			0, 0, 0, 1,
-		};
+		};*/
 
-		glm::mat4 temp;
-		return temp;
+		glm::mat4 r = glm::mat4(1);
+
+		return glm::mat4(1);
 	}
 
 	glm::mat4 rotateX(float x)
 	{
-		srand(time(NULL));
-		glm::mat4 temp;
-		return temp;
+		return glm::mat4(1);
 	}
 
 	glm::mat4 translate(glm::vec3 position)
 	{
-		srand(time(NULL));
 		glm::mat4 m = glm::mat4(1);
-		m[0][0] = position.x;
-		m[0][0] = position.y;
-		m[0][0] = position.z;
+		m[3][0] = position.x;
+		m[3][1] = position.y;
+		m[3][2] = position.z;
 
 		return m;
 	}
 }
 
+struct Transform
+{
+	glm::vec3 position;
+	glm::vec3 rotation;
+	glm::vec3 scale;
+
+	glm::mat4 getModelMatrix()
+	{
+		return glm::mat4(1);
+	}
+};
+
+struct Camera
+{
+	/*
+	vec3 position;
+vec3 target; //world position to look at
+float fov; //vertical field of view
+float orthographicSize; //height of frustum in view space
+bool orthographic;
+mat4 getViewMatrix()
+mat4 getProjectionMatrix()
+mat4 ortho(float height, float aspectRatio, float nearPlane, float farPlane);
+mat4 perspective(float fov, float aspectRatio, float nearPlane, float farPlane);
+	
+	
+	
+	*/
+};
+
+const int NUM_CUBE = 5;
+Transform transforms[1];
 
 
 int main() {
@@ -159,9 +183,13 @@ int main() {
 
 		//Draw
 		shader.use();
-		shader.setMat4("_Model", glm::mat4(1));
-		cubeMesh.draw();
 
+		for (size_t i = 0; i < NUM_CUBE; i++)
+		{
+			shader.setMat4("_Model", transforms[i].getModelMatrix());
+			cubeMesh.draw();
+		}
+		
 		//Draw UI
 		ImGui::Begin("Settings");
 		ImGui::SliderFloat("Example slider", &exampleSliderFloat, 0.0f, 10.0f);
