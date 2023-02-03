@@ -48,26 +48,25 @@ namespace Function
 	
 	glm::mat4 scale(glm::vec3 scaling)
 	{
-		float scaleData[] =
-		{
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
-		};
+		glm::mat4 s;
+
+		s = glm::mat4(1);
+
+		s[0][0] = scaling.x;
+		
 
 		return glm::mat4(1);
 	}
 
 	glm::mat4 roate(glm::vec3 rotation)
 	{
-		/*float rotationData[] =
+		float rotationData[] =
 		{
 			1, 1, 1, 0,
 			1, 1, 1, 0,
 			1, 1, 1, 0,
 			0, 0, 0, 1,
-		};*/
+		};
 
 		glm::mat4 r = glm::mat4(1);
 
@@ -98,30 +97,41 @@ struct Transform
 
 	glm::mat4 getModelMatrix()
 	{
-		return glm::mat4(1);
+		return Function::translate(position) * Function::roate(rotation) * Function::scale(scale);
 	}
 };
 
 struct Camera
 {
-	/*
-	vec3 position;
-vec3 target; //world position to look at
-float fov; //vertical field of view
-float orthographicSize; //height of frustum in view space
-bool orthographic;
-mat4 getViewMatrix()
-mat4 getProjectionMatrix()
-mat4 ortho(float height, float aspectRatio, float nearPlane, float farPlane);
-mat4 perspective(float fov, float aspectRatio, float nearPlane, float farPlane);
-	
-	
-	
-	*/
+	glm::vec3 position;
+	glm::vec3 target; //world position to look at
+	float fov; //vertical field of view
+	float orthographicSize; //height of frustum in view space
+	bool orthographic;
+	glm::mat4 getViewMatrix()
+	{
+		return glm::mat4(1);
+	}
+
+	glm::mat4 getProjectionMatrix()
+	{
+		return glm::mat4(2);
+	}
+
+	glm::mat4 ortho(float height, float aspectRatio, float nearPlane, float farPlane)
+	{
+		return glm::mat4(3);
+	}
+
+	glm::mat4 perspective(float fov, float aspectRatio, float nearPlane, float farPlane)
+	{
+		return glm::mat4(4);
+	}
 };
 
 const int NUM_CUBE = 5;
 Transform transforms[1];
+Camera camera;
 
 
 int main() {
@@ -183,6 +193,8 @@ int main() {
 
 		//Draw
 		shader.use();
+
+		shader.setMat4("_Projection", camera.getProjectionMatrix());
 
 		for (size_t i = 0; i < NUM_CUBE; i++)
 		{
