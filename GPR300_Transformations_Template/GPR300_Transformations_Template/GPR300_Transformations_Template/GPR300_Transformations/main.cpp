@@ -41,7 +41,11 @@ const int MOUSE_TOGGLE_BUTTON = 1;
 const float MOUSE_SENSITIVITY = 0.1f;
 
 glm::vec3 bgColor = glm::vec3(0);
-float exampleSliderFloat = 0.0f;
+float sliderFloat = 0.0f;
+float OrbitRadius = 1.0f;
+float OrbitSpeed = 2.0f;
+float FieldOfView = 5.0f;
+float OrthographicHeight = 10.0f;
 
 namespace Function
 {
@@ -53,29 +57,74 @@ namespace Function
 		s = glm::mat4(1);
 
 		s[0][0] = scaling.x;
+		s[1][1] = scaling.y;
+		s[2][2] = scaling.z;
+		s[3][3] = 1;
 		
 
-		return glm::mat4(1);
+		return s;
 	}
 
 	glm::mat4 roate(glm::vec3 rotation)
 	{
-		float rotationData[] =
-		{
-			1, 1, 1, 0,
-			1, 1, 1, 0,
-			1, 1, 1, 0,
-			0, 0, 0, 1,
-		};
-
+		glm::mat4 R = glm::mat4(1);
 		glm::mat4 r = glm::mat4(1);
+		glm::mat4 u = glm::mat4(1);
+		glm::mat4 f = glm::mat4(1);
 
-		return glm::mat4(1);
+		r[0][0] = rotation.x;
+		R[0][0] = r[0][0];
+
+		u[1][0] = rotation.x;
+		R[1][0] = u[1][0];
+
+		f[2][0] = rotation.x;
+		R[2][0] = f[2][0];
+
+		r[0][1] = rotation.y;
+		R[0][1] = r[0][1];
+
+		u[1][1] = rotation.y;
+		R[1][1] = r[1][1];
+
+		f[2][1] = rotation.y;
+		R[2][1] = r[2][1];
+
+		r[0][2] = rotation.z;
+		R[0][2] = r[0][2];
+
+		u[1][2] = rotation.z;
+		R[1][2] = r[1][2];
+
+		f[2][2] = rotation.z;
+		R[2][2] = r[2][2];
+
+		R[3][3] = 1;
+
+
+
+
+		return R;
 	}
 
 	glm::mat4 rotateX(float x)
 	{
 		return glm::mat4(1);
+	}
+
+	glm::mat4 rotateY(float y)
+	{
+		return glm::mat4(1);
+	}
+
+	glm::mat4 rotateZ(float z)
+	{
+		return glm::mat4(1);
+	}
+
+	glm::mat4 rotateXYZ(float x, float y, float z)
+	{
+		return rotateX(x) * rotateY(y) * rotateZ(z);
 	}
 
 	glm::mat4 translate(glm::vec3 position)
@@ -115,22 +164,27 @@ struct Camera
 
 	glm::mat4 getProjectionMatrix()
 	{
-		return glm::mat4(2);
+		return glm::mat4(1);
 	}
 
 	glm::mat4 ortho(float height, float aspectRatio, float nearPlane, float farPlane)
 	{
-		return glm::mat4(3);
+		return glm::mat4(1);
 	}
 
 	glm::mat4 perspective(float fov, float aspectRatio, float nearPlane, float farPlane)
 	{
-		return glm::mat4(4);
+		return glm::mat4(1);
+	}
+
+	glm::mat4 lookAt(glm::vec3 targetPos, glm::vec3 camPos, glm::vec3 up)
+	{
+		return glm::mat4(1);
 	}
 };
 
 const int NUM_CUBE = 5;
-Transform transforms[1];
+Transform transforms[5];
 Camera camera;
 
 
@@ -201,10 +255,16 @@ int main() {
 			shader.setMat4("_Model", transforms[i].getModelMatrix());
 			cubeMesh.draw();
 		}
+
+		shader.setMat4("_View", camera.getViewMatrix());
+		shader.setMat4("_Projection", camera.getProjectionMatrix());
 		
 		//Draw UI
 		ImGui::Begin("Settings");
-		ImGui::SliderFloat("Example slider", &exampleSliderFloat, 0.0f, 10.0f);
+		ImGui::SliderFloat("Orbit radius", &OrbitRadius, 0.0f, 100.0f);
+		ImGui::SliderFloat("Orbit speed", &OrbitSpeed, 0.0f, 100.0f);
+		ImGui::SliderFloat("Field of View", &FieldOfView, 0.0f, 100.0f);
+		ImGui::SliderFloat("Orthographic height", &OrthographicHeight, 0.0f, 100.0f);
 		ImGui::End();
 
 		ImGui::Render();
