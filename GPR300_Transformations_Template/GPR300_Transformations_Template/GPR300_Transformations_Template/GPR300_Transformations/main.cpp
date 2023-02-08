@@ -41,11 +41,7 @@ const int MOUSE_TOGGLE_BUTTON = 1;
 const float MOUSE_SENSITIVITY = 0.1f;
 
 glm::vec3 bgColor = glm::vec3(0);
-float sliderFloat = 0.0f;
-float OrbitRadius = 1.0f;
-float OrbitSpeed = 2.0f;
-float FieldOfView = 5.0f;
-float OrthographicHeight = 10.0f;
+
 
 namespace Function
 {
@@ -169,28 +165,28 @@ namespace Function
 
 struct Transform
 {
-	glm::vec3 position;
-	glm::vec3 rotation;
-	glm::vec3 scale;
+	glm::vec3 position = glm::vec3(0);
+	glm::vec3 rotation = glm::vec3(0);
+	glm::vec3 scale = glm::vec3(1);
 
 	glm::mat4 getModelMatrix()
 	{
-		return Function::translate(position) * Function::roate(rotation) * Function::scale(scale);
+		return Function::translate(position) * Function::rotateXYZ(rotation.x, rotation.y, rotation.z) * Function::scale(scale);
 	}
 };
 
 struct Camera
 {
-	glm::vec3 position;
-	glm::vec3 target; //world position to look at
-	float fov; //vertical field of view
-	float orthographicSize; //height of frustum in view space
-	bool* orthographic = new bool;
+	glm::vec3 position = glm::vec3(0, 0, 5);
+	glm::vec3 target = glm::vec3(0, 0, 0); //world position to look at
+	float fov = 50.0f; //vertical field of view
+	float orthographicSize = 30.0f; //height of frustum in view space
+	bool orthographic;
 
 	glm::mat4 getViewMatrix()
 	{
 		glm::mat4 view = glm::mat4(1);
-		glm::vec3 direction = glm::vec3(1.0f, 1.0f, 1.0f);
+		glm::vec3 direction = glm::vec3(0.0f, 1.0f, 0.0f);
 
 		view = lookAt(target, position, direction);
 
@@ -202,7 +198,17 @@ struct Camera
 		glm::mat4 project = glm::mat4(1);
 
 		//return project;
-		return perspective(fov, orthographicSize, 10.0f, 10.0f);
+		if (!orthographic)
+		{
+			return perspective(fov, (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 1000.0f);
+		}
+
+		else
+		{
+			return ortho(orthographicSize, (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 1000.0f);
+		}
+		
+		//return ortho(1.0f, 1.0f, 1.0f, 1.0f);
 		//return glm::mat4(1);
 	}
 
@@ -210,7 +216,7 @@ struct Camera
 	{
 		glm::mat4 o = glm::mat4(1);
 
-		float r = aspectRatio / 2;
+		float r = height / 2 * aspectRatio;
 		float t = height / 2;
 		float l = -r;
 		float b = -t;
@@ -229,6 +235,7 @@ struct Camera
 
 	glm::mat4 perspective(float fov, float aspectRatio, float nearPlane, float farPlane)
 	{
+		fov = glm::radians(fov);
 		glm::mat4 p = glm::mat4(1);
 		float c = tan(fov / 2);
 
@@ -248,27 +255,36 @@ struct Camera
 	{
 		glm::mat4 look = glm::mat4(1);
 
+		glm::vec3 forward = glm::normalize(targetPos - camPos);
+		glm::vec3 right = glm::normalize(glm::cross(forward, up));
+		up = glm::cross(right, forward);
+
+		forward = -forward;
+
 		
 
-		camPos = targetPos = glm::vec3(1.0f, 1.0f, 1.0f);
-		up = glm::vec3(0.0f, 1.0f, 0.0f);
+		look[0][0] = right.x;
+		look[1][0] = right.y;
+		look[2][0] = right.z;
+		look[0][1] = up.x;
+		look[1][1] = up.y;
+		look[2][1] = up.z;
+		look[0][2] = forward.x;
+		look[1][2] = forward.y;
+		look[2][2] = forward.z;
 
-		look[0][0] = 1;
-		look[1][1] = 1;
-		look[2][2] = 1;
-		look[3][0] = camPos.x;
-		look[3][1] = camPos.y;
-		look[3][2] = camPos.z;
-		look[3][3] = 1;
+		glm::mat4 translate = Function::translate(-camPos);
 
-		return glm::mat4(1);
-		//return look;
+		return look * translate;
 	}
 };
 
 const int NUM_CUBE = 5;
 Transform transforms[5];
 Camera camera;
+float sliderFloat = 0.0f;
+float OrbitRadius = 1.0f;
+float OrbitSpeed = 5.0f;
 
 
 int main() {
@@ -336,6 +352,7 @@ int main() {
 		for (size_t i = 0; i < NUM_CUBE; i++)
 		{
 			shader.setMat4("_Model", transforms[i].getModelMatrix());
+			//shader.setMat4("_Model", glm::mat4(1));
 			cubeMesh.draw();
 		}
 
@@ -345,9 +362,9 @@ int main() {
 		ImGui::Begin("Settings");
 		ImGui::SliderFloat("Orbit radius", &OrbitRadius, 0.0f, 100.0f);
 		ImGui::SliderFloat("Orbit speed", &OrbitSpeed, 0.0f, 100.0f);
-		ImGui::SliderFloat("Field of View", &FieldOfView, 0.0f, 100.0f);
-		ImGui::SliderFloat("Orthographic height", &OrthographicHeight, 0.0f, 100.0f);
-		ImGui::Checkbox("Orthographic toggle", camera.orthographic);
+		ImGui::SliderFloat("Field of View", &camera.fov, 0.0f, 100.0f);
+		ImGui::SliderFloat("Orthographic height", &camera.orthographicSize, 0.0f, 100.0f);
+		ImGui::Checkbox("Orthographic toggle", &camera.orthographic);
 		ImGui::End();
 
 		ImGui::Render();
