@@ -17,6 +17,8 @@
 
 #include "EW/Shader.h"
 #include "EW/ShapeGen.h"
+#include <random>
+#include <time.h>
 
 using namespace std;
 
@@ -169,6 +171,8 @@ struct Transform
 	glm::vec3 rotation = glm::vec3(0);
 	glm::vec3 scale = glm::vec3(1);
 
+	
+
 	glm::mat4 getModelMatrix()
 	{
 		return Function::translate(position) * Function::rotateXYZ(rotation.x, rotation.y, rotation.z) * Function::scale(scale);
@@ -177,39 +181,49 @@ struct Transform
 
 struct Camera
 {
-	glm::vec3 position = glm::vec3(0, 0, 5);
+	float deltaTime = glfwGetTime();
+	float speed = 0.5f;
+	float radius = 5.0f;
+	//glm::vec3 position = glm::vec3(0, 0, 5);
+	glm::vec3 position = glm::vec3(1);
+	
 	glm::vec3 target = glm::vec3(0, 0, 0); //world position to look at
 	float fov = 50.0f; //vertical field of view
 	float orthographicSize = 30.0f; //height of frustum in view space
 	bool orthographic;
+	
+	//float currentTime;
+	//float previousTime = currentTime;
+	
 
 	glm::mat4 getViewMatrix()
 	{
+		deltaTime = glfwGetTime();
 		glm::mat4 view = glm::mat4(1);
 		glm::vec3 direction = glm::vec3(0.0f, 1.0f, 0.0f);
+		position = glm::vec3(cos(deltaTime * speed), 0, sin(deltaTime * speed)) * radius;
 
 		view = lookAt(target, position, direction);
+
+
 
 		return view;
 	}
 
+	
+
 	glm::mat4 getProjectionMatrix()
 	{
-		glm::mat4 project = glm::mat4(1);
-
-		//return project;
-		if (!orthographic)
+		if (orthographic)
 		{
-			return perspective(fov, (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 1000.0f);
+			return ortho(orthographicSize, (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 1000.0f);
+			
 		}
 
 		else
 		{
-			return ortho(orthographicSize, (float)SCREEN_WIDTH/SCREEN_HEIGHT, 0.1f, 1000.0f);
+			return perspective(fov, (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 1000.0f);
 		}
-		
-		//return ortho(1.0f, 1.0f, 1.0f, 1.0f);
-		//return glm::mat4(1);
 	}
 
 	glm::mat4 ortho(float height, float aspectRatio, float nearPlane, float farPlane)
@@ -288,6 +302,7 @@ float OrbitSpeed = 5.0f;
 
 
 int main() {
+	srand(time(NULL));
 	if (!glfwInit()) {
 		printf("glfw failed to init");
 		return 1;
@@ -332,6 +347,20 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	for (int j = 0; j < NUM_CUBE; j++)
+	{
+		float pX = rand() % 20 - 10;
+		float pY = rand() % 20 - 10;
+		float pZ = rand() % 30 - 10;
+
+		float rX = rand() % 360 + 0;
+		float rY = rand() % 360 + 0;
+		float rZ = rand() % 360 + 0;
+
+		transforms[j].position = glm::vec3(pX, pY, pZ);
+		transforms[j].rotation = glm::vec3(rX, rY, rZ);
+	}
+
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -360,8 +389,8 @@ int main() {
 		
 		//Draw UI
 		ImGui::Begin("Settings");
-		ImGui::SliderFloat("Orbit radius", &OrbitRadius, 0.0f, 100.0f);
-		ImGui::SliderFloat("Orbit speed", &OrbitSpeed, 0.0f, 100.0f);
+		ImGui::SliderFloat("Orbit radius", &camera.radius, 0.0f, 100.0f);
+		ImGui::SliderFloat("Orbit speed", &camera.speed, 0.0f, 100.0f);
 		ImGui::SliderFloat("Field of View", &camera.fov, 0.0f, 100.0f);
 		ImGui::SliderFloat("Orthographic height", &camera.orthographicSize, 0.0f, 100.0f);
 		ImGui::Checkbox("Orthographic toggle", &camera.orthographic);
