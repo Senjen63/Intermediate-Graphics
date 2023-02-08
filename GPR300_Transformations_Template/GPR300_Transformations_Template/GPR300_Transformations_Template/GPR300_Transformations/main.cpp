@@ -101,25 +101,49 @@ namespace Function
 
 		R[3][3] = 1;
 
-
-
-
 		return R;
 	}
 
 	glm::mat4 rotateX(float x)
 	{
-		return glm::mat4(1);
+		glm::mat4 pitch = glm::mat4(1);
+		
+		pitch[0][0] = 1;
+		pitch[1][1] = cos(x);
+		pitch[1][2] = sin(x);
+		pitch[2][1] = -sin(x);
+		pitch[2][2] = cos(x);
+		pitch[3][3] = 1;
+
+		return pitch;
 	}
 
 	glm::mat4 rotateY(float y)
 	{
-		return glm::mat4(1);
+		glm::mat4 yaw = glm::mat4(1);
+
+		yaw[0][0] = cos(y);
+		yaw[0][2] = -sin(y);
+		yaw[1][1] = 1;
+		yaw[2][0] = sin(y);
+		yaw[2][2] = cos(y);
+		yaw[3][3] = 1;
+
+		return yaw;
 	}
 
 	glm::mat4 rotateZ(float z)
 	{
-		return glm::mat4(1);
+		glm::mat4 roll = glm::mat4(1);
+
+		roll[0][0] = cos(z);
+		roll[0][1] = sin(z);
+		roll[1][0] = -sin(z);
+		roll[1][1] = cos(z);
+		roll[2][2] = 1;
+		roll[3][3] = 1;
+
+		return roll;
 	}
 
 	glm::mat4 rotateXYZ(float x, float y, float z)
@@ -130,9 +154,14 @@ namespace Function
 	glm::mat4 translate(glm::vec3 position)
 	{
 		glm::mat4 m = glm::mat4(1);
+		m[0][0] = 1;
+		m[1][1] = 1;
+		m[2][2] = 1;
 		m[3][0] = position.x;
 		m[3][1] = position.y;
 		m[3][2] = position.z;
+		m[3][3] = 1;
+
 
 		return m;
 	}
@@ -156,30 +185,84 @@ struct Camera
 	glm::vec3 target; //world position to look at
 	float fov; //vertical field of view
 	float orthographicSize; //height of frustum in view space
-	bool orthographic;
+	bool* orthographic = new bool;
+
 	glm::mat4 getViewMatrix()
 	{
-		return glm::mat4(1);
+		glm::mat4 view = glm::mat4(1);
+		glm::vec3 direction = glm::vec3(1.0f, 1.0f, 1.0f);
+
+		view = lookAt(target, position, direction);
+
+		return view;
 	}
 
 	glm::mat4 getProjectionMatrix()
 	{
-		return glm::mat4(1);
+		glm::mat4 project = glm::mat4(1);
+
+		//return project;
+		return perspective(fov, orthographicSize, 10.0f, 10.0f);
+		//return glm::mat4(1);
 	}
 
 	glm::mat4 ortho(float height, float aspectRatio, float nearPlane, float farPlane)
 	{
-		return glm::mat4(1);
+		glm::mat4 o = glm::mat4(1);
+
+		float r = aspectRatio / 2;
+		float t = height / 2;
+		float l = -r;
+		float b = -t;
+
+		o[0][0] = 2 / (r - l);
+		o[1][1] = 2 / (t - b);
+		o[2][2] = -2 / (farPlane - nearPlane);
+		o[3][0] = -(r + l) / (r - l);
+		o[3][1] = -(t + b) / (t - b);
+		o[3][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+		o[3][3] = 1;
+
+		//return glm::mat4(1);
+		return o;
 	}
 
 	glm::mat4 perspective(float fov, float aspectRatio, float nearPlane, float farPlane)
 	{
-		return glm::mat4(1);
+		glm::mat4 p = glm::mat4(1);
+		float c = tan(fov / 2);
+
+		p[0][0] = 1 / (aspectRatio * c);
+		p[1][1] = 1 / c;
+		p[2][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+		p[2][3] = -1;
+		p[3][2] = -2 * (farPlane * nearPlane) / (farPlane - nearPlane);
+		p[3][3] = 1;
+		
+
+		//return glm::mat4(1);
+		return p;
 	}
 
 	glm::mat4 lookAt(glm::vec3 targetPos, glm::vec3 camPos, glm::vec3 up)
 	{
+		glm::mat4 look = glm::mat4(1);
+
+		
+
+		camPos = targetPos = glm::vec3(1.0f, 1.0f, 1.0f);
+		up = glm::vec3(0.0f, 1.0f, 0.0f);
+
+		look[0][0] = 1;
+		look[1][1] = 1;
+		look[2][2] = 1;
+		look[3][0] = camPos.x;
+		look[3][1] = camPos.y;
+		look[3][2] = camPos.z;
+		look[3][3] = 1;
+
 		return glm::mat4(1);
+		//return look;
 	}
 };
 
@@ -247,7 +330,7 @@ int main() {
 
 		//Draw
 		shader.use();
-
+		shader.setMat4("_View", camera.getViewMatrix());
 		shader.setMat4("_Projection", camera.getProjectionMatrix());
 
 		for (size_t i = 0; i < NUM_CUBE; i++)
@@ -256,8 +339,7 @@ int main() {
 			cubeMesh.draw();
 		}
 
-		shader.setMat4("_View", camera.getViewMatrix());
-		shader.setMat4("_Projection", camera.getProjectionMatrix());
+		
 		
 		//Draw UI
 		ImGui::Begin("Settings");
@@ -265,6 +347,7 @@ int main() {
 		ImGui::SliderFloat("Orbit speed", &OrbitSpeed, 0.0f, 100.0f);
 		ImGui::SliderFloat("Field of View", &FieldOfView, 0.0f, 100.0f);
 		ImGui::SliderFloat("Orthographic height", &OrthographicHeight, 0.0f, 100.0f);
+		ImGui::Checkbox("Orthographic toggle", camera.orthographic);
 		ImGui::End();
 
 		ImGui::Render();
