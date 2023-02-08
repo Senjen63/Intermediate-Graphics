@@ -63,45 +63,6 @@ namespace Function
 		return s;
 	}
 
-	glm::mat4 roate(glm::vec3 rotation)
-	{
-		glm::mat4 R = glm::mat4(1);
-		glm::mat4 r = glm::mat4(1);
-		glm::mat4 u = glm::mat4(1);
-		glm::mat4 f = glm::mat4(1);
-
-		r[0][0] = rotation.x;
-		R[0][0] = r[0][0];
-
-		u[1][0] = rotation.x;
-		R[1][0] = u[1][0];
-
-		f[2][0] = rotation.x;
-		R[2][0] = f[2][0];
-
-		r[0][1] = rotation.y;
-		R[0][1] = r[0][1];
-
-		u[1][1] = rotation.y;
-		R[1][1] = r[1][1];
-
-		f[2][1] = rotation.y;
-		R[2][1] = r[2][1];
-
-		r[0][2] = rotation.z;
-		R[0][2] = r[0][2];
-
-		u[1][2] = rotation.z;
-		R[1][2] = r[1][2];
-
-		f[2][2] = rotation.z;
-		R[2][2] = r[2][2];
-
-		R[3][3] = 1;
-
-		return R;
-	}
-
 	glm::mat4 rotateX(float x)
 	{
 		glm::mat4 pitch = glm::mat4(1);
