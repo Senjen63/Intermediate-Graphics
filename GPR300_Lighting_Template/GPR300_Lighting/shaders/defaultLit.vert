@@ -7,6 +7,7 @@ uniform mat4 _View;
 uniform mat4 _Projection;
 
 out vec3 Normal;
+//
 
 void main(){    
     Normal = vNormal;
