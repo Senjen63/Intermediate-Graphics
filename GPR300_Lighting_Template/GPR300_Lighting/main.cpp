@@ -52,9 +52,16 @@ Camera camera((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
 
 glm::vec3 bgColor = glm::vec3(0);
 glm::vec3 lightColor = glm::vec3(1.0f);
-glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
+
+struct Light {
+	glm::vec3 position;
+	glm::vec3 color;
+	float intensity;
+};
+
+Light light;
 
 int main() {
 	if (!glfwInit()) {
@@ -151,11 +158,24 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		//UPDATE
+		cubeTransform.rotation.x += deltaTime;
+
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		litShader.setVec3("_LightPos", lightTransform.position);
+		//litShader.setVec3("_LightPos", lightTransform.position);
+
+		//Set some lighting uniforms
+		for (size_t i = 0; i < 8; i++)
+		{
+			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
+			litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", light.intensity);
+			litShader.setVec3("_Lights[" + std::to_string(i) + "].color", light.color);
+		}
+	
+
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
@@ -180,11 +200,42 @@ int main() {
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
+		float slider = 0.0f;
+		int sliderI = 0;
 		//Draw UI
-		ImGui::Begin("Settings");
+		ImGui::Begin("Material");
 
-		ImGui::ColorEdit3("Light Color", &lightColor.r);
-		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::ColorEdit3("Material Color", &lightColor.r);
+		ImGui::SliderFloat("Material Ambient K", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Material Diffuse K", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Material Specular K", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Material Shininess", &slider, 0.0f, 100.0f);
+		ImGui::End();
+
+		ImGui::Begin("Directional Light");
+		ImGui::DragFloat3("Direction", &lightTransform.position.x);
+		ImGui::SliderFloat("Intensity", &slider, 0.0f, 100.0f);
+		ImGui::ColorEdit3("Color", &lightColor.r);
+		ImGui::End();
+
+		ImGui::Begin("Point Lights");
+		ImGui::SliderInt("Number of Point Lights", &sliderI, 0.0f, 100.0f);
+		ImGui::SliderFloat("Point Light Range", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Point Light Intensity", &slider, 0.0f, 100.0f);
+		ImGui::DragFloat3("Point Light Orbit Center", &lightTransform.position.x);
+		ImGui::SliderFloat("Point Light Orbit Radius", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Point Light Orbit Speed", &slider, 0.0f, 100.0f);
+		ImGui::End();
+
+		ImGui::Begin("Spot Light");
+		ImGui::DragFloat3("Spot Light Position", &lightTransform.position.x);
+		ImGui::DragFloat3("Spot Light Direction", &lightTransform.position.x);
+		ImGui::SliderFloat("Spot Light Intensity", &slider, 0.0f, 100.0f);
+		ImGui::ColorEdit3("Color", &lightColor.r);
+		ImGui::SliderFloat("Spot Light Range", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Inner Angle", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Outer Angle", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Point Light Angle Falloff", &slider, 0.0f, 100.0f);
 		ImGui::End();
 
 		ImGui::Render();
