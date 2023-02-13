@@ -427,7 +427,6 @@ x32
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe
