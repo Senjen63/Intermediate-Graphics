@@ -61,12 +61,12 @@ struct Light {
 	float intensity;
 };
 
-//struct Material
-//{
-//	glm::vec3 Color;
-//	float AmbientK, DiffuseK, SpecularK; //(0 - 1)
-//	float Shininess;
-//};
+struct Material
+{
+	glm::vec3 Color;
+	float AmbientK, DiffuseK, SpecularK; //(0 - 1)
+	float Shininess;
+};
 
 
 

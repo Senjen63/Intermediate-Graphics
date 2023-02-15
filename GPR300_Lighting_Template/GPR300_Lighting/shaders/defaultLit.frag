@@ -48,11 +48,18 @@ vec3 calculateLight(Light light)
 
 	float specularK = _Material.SpecularK;
 	vec3 specularDirection = v_out.WorldPosition - light.position;
+	//vec3 specularDirection = reflect(v_out.WorldPosition - light.position);
+	//R = redlect(-L,N) P(WorldPosition) = L N= WorldNormal
 	vec3 viewerDirection;
+	//vec3 viewerDirection = dot(R,C);
+	// Normalize(CameraP - WorldP)
 	vec3 specularI = light.color;
 	
 	//camera position
 	//direction
+	//Blinn-Phong Specular
+	//H = normalize(V+L)
+	//|| || = magnitude
 
 
 	//ambient = ambientK * ambientI;
@@ -61,6 +68,21 @@ vec3 calculateLight(Light light)
 
 	return vec3(0);
 	//return PhongShade
+}
+
+vec3 calculateAmbient()
+{
+	return vec3(0);
+}
+
+vec3 calculateDiffuse()
+{
+	return vec3(0);
+}
+
+vec3 calculateSpecular()
+{
+	return vec3(0);
 }
 
 void main(){      
