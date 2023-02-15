@@ -61,7 +61,41 @@ struct Light {
 	float intensity;
 };
 
+//struct Material
+//{
+//	glm::vec3 Color;
+//	float AmbientK, DiffuseK, SpecularK; //(0 - 1)
+//	float Shininess;
+//};
+
+
+
 Light light;
+//Material material;
+
+
+glm::vec3 calculateLight(Light light)
+{
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	glm::vec3 PhongShade;
+
+	float ambientK = 0.1f;
+	float ambientI;
+
+	float diffuseK;
+	glm::vec3 Direction = light.position;
+
+	
+
+	//ambient = ambientK * ambientI;
+
+	PhongShade = ambient + diffuse + specular;
+
+	return glm::vec3(0);
+	//return PhongShade
+}
 
 int main() {
 	if (!glfwInit()) {
@@ -175,7 +209,7 @@ int main() {
 			litShader.setVec3("_Lights[" + std::to_string(i) + "].color", light.color);
 		}
 	
-
+		
 		//Draw cube
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		cubeMesh.draw();
@@ -206,10 +240,10 @@ int main() {
 		ImGui::Begin("Material");
 
 		ImGui::ColorEdit3("Material Color", &lightColor.r);
-		ImGui::SliderFloat("Material Ambient K", &slider, 0.0f, 100.0f);
-		ImGui::SliderFloat("Material Diffuse K", &slider, 0.0f, 100.0f);
-		ImGui::SliderFloat("Material Specular K", &slider, 0.0f, 100.0f);
-		ImGui::SliderFloat("Material Shininess", &slider, 0.0f, 100.0f);
+		ImGui::SliderFloat("Material Ambient K", &material.AmbientK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Material Diffuse K", &material.DiffuseK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Material Specular K", &material.SpecularK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Material Shininess", &material.Shininess, 1.0f, 512.0f);
 		ImGui::End();
 
 		ImGui::Begin("Directional Light");
