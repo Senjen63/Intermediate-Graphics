@@ -71,30 +71,114 @@ struct Material
 
 
 Light light;
-//Material material;
+Material material;
 
 
-glm::vec3 calculateLight(Light light)
+vec3 CalculateAmbient(vec3 ambient)
 {
-	glm::vec3 ambient;
-	glm::vec3 diffuse;
-	glm::vec3 specular;
-	glm::vec3 PhongShade;
+	float ambientK = _Material.AmbientK;
+	vec3 ambientI = _Material.Color;
 
-	float ambientK = 0.1f;
-	float ambientI;
+	ambient = ambientK * ambientI;
 
-	float diffuseK;
-	glm::vec3 Direction = light.position;
+	return ambient;
+	//return vec3(0);
+}
 
-	
+vec3 CalculateDiffuse(Light light, vec3 diffuse)
+{
+	float diffuseK = _Material.DiffuseK;
+	vec3 diffuseDirection = v_out.WorldPosition - light.position;
+	vec3 diffuseI = light.color;
 
-	//ambient = ambientK * ambientI;
+	diffuse = diffuseK * dot(normalize(diffuseDirection), normalize(v_out.WorldNormal)) * diffuseI;
 
-	PhongShade = ambient + diffuse + specular;
+	return diffuse;
+}
 
-	return glm::vec3(0);
-	//return PhongShade
+vec3 CalculateSpecular(Light light, vec3 specular)
+{
+	float specularK = _Material.SpecularK;
+	vec3 specularR = v_out.WorldPosition - light.position;;
+	vec3 specularV = _CameraPosition - v_out.WorldPosition;
+	float specularA = _Material.Shininess;
+	float specularI = light.intensity;
+
+	vec3 specularN = v_out.WorldNormal;
+	vec3 specularH;
+
+	vec3 specularL;
+
+
+	vec3 specularC = light.color;
+
+	//vec3 specularDirection = v_out.WorldPosition - light.position;
+	//vec3 specularDirection = reflect(v_out.WorldPosition - light.position);
+	//R = redlect(-L,N) P(WorldPosition) = L N= WorldNormal
+	//vec3 viewerDirection;
+	//vec3 viewerDirection = dot(R,C);
+	// Normalize(CameraP - WorldP)
+
+
+	//camera position
+	//direction
+	//Blinn-Phong Specular
+	//H = normalize(V+L)
+	//|| || = magnitude
+
+	float d = dot(normalize(specularR), normalize(specularV));
+
+	specular = specularC * specularK * pow(d, specularA) * specularI;
+
+
+	return specular;
+}
+
+vec3 CalculateBlinnPhongSpecular(Light light, vec3 specular)
+{
+	float specularK = _Material.SpecularK;
+	vec3 specularN = v_out.WorldNormal;
+	vec3 specularH;
+	vec3 specularV;
+	vec3 specularL;
+	float specularA = _Material.Shininess;
+	float specularI = light.intensity;
+	vec3 specularC = light.color;
+
+
+	//V = direction towards the viewer (camera position - world position)
+	//L = Direction of the light
+
+	//camera position
+	//direction
+	//Blinn-Phong Specular
+	//H = normalize(V+L)
+	//|| || = magnitude
+
+	specularV = _CameraPosition - v_out.WorldPosition;
+	specularL = v_out.WorldPosition - light.position;
+
+	specularH = normalize(specularV + specularL);
+
+	float d = dot(normalize(specularN), normalize(specularH));
+
+	specular = specularC * specularK * pow(d, specularA) * specularI;
+
+
+	return specular;
+}
+
+vec3 calculateLight(Light light, vec3 ambient, vec3 diffuse, vec3 specular)
+{
+
+	vec3 PhongShade;
+
+
+
+	PhongShade = CalculateAmbient(ambient) + CalculateDiffuse(light, diffuse) + CalculateBlinnPhongSpecular(light, specular);
+
+
+	return PhongShade;
 }
 
 int main() {
@@ -239,7 +323,7 @@ int main() {
 		//Draw UI
 		ImGui::Begin("Material");
 
-		ImGui::ColorEdit3("Material Color", &lightColor.r);
+		ImGui::ColorEdit3("Material Color", &material.Color.r);
 		ImGui::SliderFloat("Material Ambient K", &material.AmbientK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Material Diffuse K", &material.DiffuseK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Material Specular K", &material.SpecularK, 0.0f, 1.0f);
@@ -248,9 +332,11 @@ int main() {
 
 		ImGui::Begin("Directional Light");
 		ImGui::DragFloat3("Direction", &lightTransform.position.x);
-		ImGui::SliderFloat("Intensity", &slider, 0.0f, 100.0f);
-		ImGui::ColorEdit3("Color", &lightColor.r);
+		ImGui::SliderFloat("Intensity", &light.intensity, 0.0f, 100.0f);
+		ImGui::ColorEdit3("Color", &material.Color.r);
 		ImGui::End();
+
+		//
 
 		ImGui::Begin("Point Lights");
 		ImGui::SliderInt("Number of Point Lights", &sliderI, 0.0f, 100.0f);
@@ -265,7 +351,7 @@ int main() {
 		ImGui::DragFloat3("Spot Light Position", &lightTransform.position.x);
 		ImGui::DragFloat3("Spot Light Direction", &lightTransform.position.x);
 		ImGui::SliderFloat("Spot Light Intensity", &slider, 0.0f, 100.0f);
-		ImGui::ColorEdit3("Color", &lightColor.r);
+		ImGui::ColorEdit3("Color", &material.Color.r);
 		ImGui::SliderFloat("Spot Light Range", &slider, 0.0f, 100.0f);
 		ImGui::SliderFloat("Spot Light Inner Angle", &slider, 0.0f, 100.0f);
 		ImGui::SliderFloat("Spot Light Outer Angle", &slider, 0.0f, 100.0f);
