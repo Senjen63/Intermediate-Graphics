@@ -105,6 +105,8 @@ DirectionalLight directionalLight;
 PointLights pointLights[];
 SpotLight spotLight;
 
+
+
 int main() {
 	if (!glfwInit()) {
 		printf("glfw failed to init");
@@ -267,7 +269,7 @@ int main() {
 		ImGui::Begin("Point Lights");
 		ImGui::SliderInt("Number of Point Lights", &sliderI, 0.0f, 100.0f);
 		ImGui::SliderFloat("Point Light Range", &slider, 0.0f, 100.0f);
-		ImGui::SliderFloat("Point Light Intensity", &pointLights.intensity, 0.0f, 100.0f);
+		ImGui::SliderFloat("Point Light Intensity", &pointLights[0].intensity, 0.0f, 100.0f);
 		ImGui::DragFloat3("Point Light Orbit Center", &lightTransform.position.x);
 		ImGui::SliderFloat("Point Light Orbit Radius", &slider, 0.0f, 100.0f);
 		ImGui::SliderFloat("Point Light Orbit Speed", &slider, 0.0f, 100.0f);

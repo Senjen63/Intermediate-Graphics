@@ -42,9 +42,10 @@ struct SpotLight
 	vec3 position;
 	vec3 direction;
 	float intensity;
-	vec3 linearAttenuation;
-	vec3 minAngle;
-	vec3 MaxAngle;
+	float linearAttenuation;
+	float quad;
+	float minAngle;
+	float MaxAngle;
 	//linear and spotlight
 };
 
@@ -61,24 +62,24 @@ uniform vec3 _CameraPosition;
 
 
 
-vec3 CalculateAmbient(vec3 ambient)
+vec3 CalculateAmbient()
 {
 	float ambientK = _Material.AmbientK;
 	vec3 ambientI = _Material.Color;
 
-	ambient = ambientK * ambientI;
+	vec3 ambient = ambientK * ambientI;
 
 	return ambient;
 	//return vec3(0);
 }
 
-vec3 CalculateDiffuse(Light light, vec3 diffuse)
+vec3 CalculateDiffuse(Light light)
 {
 	float diffuseK = _Material.DiffuseK;
 	vec3 diffuseDirection = v_out.WorldPosition - light.position;
 	vec3 diffuseI = light.color;
 
-	diffuse = diffuseK * dot(normalize(diffuseDirection), normalize(v_out.WorldNormal)) * diffuseI;
+	vec3 diffuse = diffuseK * dot(normalize(diffuseDirection), normalize(v_out.WorldNormal)) * diffuseI;
 
 	return diffuse;
 }
@@ -125,7 +126,7 @@ vec3 CalculateSpecular(Light light, vec3 specular)
 	return specular;
 }
 
-vec3 CalculateBlinnPhongSpecular(Light light, vec3 specular)
+vec3 CalculateBlinnPhongSpecular(Light light)
 {
 	float specularK = _Material.SpecularK;
 	vec3 specularN = v_out.WorldNormal;
@@ -143,33 +144,59 @@ vec3 CalculateBlinnPhongSpecular(Light light, vec3 specular)
 
 	float d = dot(normalize(specularN), normalize(specularH));
 
-	specular = specularC * specularK * pow( d, specularA) * specularI;
+	vec3 specular = specularC * specularK * pow( d, specularA) * specularI;
 
 	return specular;
 }
 
-vec3 calculateLight(Light light, vec3 ambient, vec3 diffuse, vec3 specular)
+vec3 calculateLight(Light light)
 {
 	vec3 PhongShade;
 
-	PhongShade = CalculateAmbient(ambient) + CalculateDiffuse(light, diffuse) + CalculateBlinnPhongSpecular(light, specular);
+	PhongShade = CalculateDiffuse(light) + CalculateBlinnPhongSpecular(light);
 	
 	return PhongShade;
 }
 
-float FallOff()
+
+
+float GLFallOff()
 {
- return 0;
+	float Distance = length(v_out.WorldPosition - _SpotLight.position);
+	float I = (1 / _SpotLight.intensity + _SpotLight.linearAttenuation * Distance + _SpotLight.quad * pow(Distance, 2));
+
+	return I;
+}
+
+float AngularAttenuation()
+{
+	
+	//FragColor = vec4(0);
+
+	float w = GLFallOff();
+
+	vec3 D = (v_out.WorldPosition - _SpotLight.position) / length(v_out.WorldPosition - _SpotLight.position);
+
+	float theta = acos(cos(dot(_SpotLight.direction, D)));
+
+	
+
+	float i = pow((theta - _SpotLight.MaxAngle) / (_SpotLight.minAngle - _SpotLight.MaxAngle), w);
+
+	return i;
 }
 
 void main(){      
     vec3 normal = normalize(v_out.WorldNormal);
+
+	vec3 lightColor = CalculateAmbient();
+
+	for (int i = 0; i < MAX_LIGHTS; i++)
+	{
+		lightColor += calculateLight(_Lights[i]);
+	}
+
     FragColor = vec4(abs(normal),1.0f);
 
-	vec3 lightColor;
-
-	for (int i = 0; i < 4; i++)
-	{
-		//lightColor += calculateLight(_Lights[i], _Material.AmbientK, _Material.DiffuseK, _Material.SpecularK);
-	}
+	
 }
