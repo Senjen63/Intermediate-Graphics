@@ -204,22 +204,30 @@ int main() {
 
 		//UPDATE
 		cubeTransform.rotation.x += deltaTime;
-
+		int numLight = 0;
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
+		litShader.setInt("_NumberOfLight", numLight);
+		//litShader.setVec3();
+		//litShader.setFloat(); //for the different lights
+		
 		//litShader.setVec3("_LightPos", lightTransform.position);
 
 		//Set some lighting uniforms
 		for (size_t i = 0; i < 8; i++)
 		{
-			litShader.setVec3("_Lights[" + std::to_string(i) + "].position", lightTransform.position);
-			litShader.setFloat("_Lights[" + std::to_string(i) + "].intensity", light.intensity);
-			litShader.setVec3("_Lights[" + std::to_string(i) + "].color", light.color);
-		}
+			litShader.setVec3("_PiontLights[" + std::to_string(i) + "].position", lightTransform.position);
+			litShader.setFloat("__PiontLightsLights[" + std::to_string(i) + "].intensity", light.intensity);
+			litShader.setVec3("__PiontLights[" + std::to_string(i) + "].color", light.color);
+		}// do same to other light type
 
-		
+		//conversion
+		//for angle to cosine of angle for Spot Light
+		//cosines = radians
+		//convert degrees to radians to the cosine to them
+		//dot product = cosine
 	
 		
 		//Draw cube
@@ -247,7 +255,7 @@ int main() {
 		sphereMesh.draw();
 
 		float slider = 0.0f;
-		int sliderI = 0;
+		
 		//Draw UI
 		ImGui::Begin("Material");
 
@@ -268,6 +276,7 @@ int main() {
 
 		ImGui::Begin("Point Lights");
 		ImGui::SliderInt("Number of Point Lights", &sliderI, 0.0f, 100.0f);
+		
 		ImGui::SliderFloat("Point Light Range", &slider, 0.0f, 100.0f);
 		ImGui::SliderFloat("Point Light Intensity", &pointLights[0].intensity, 0.0f, 100.0f);
 		ImGui::DragFloat3("Point Light Orbit Center", &lightTransform.position.x);

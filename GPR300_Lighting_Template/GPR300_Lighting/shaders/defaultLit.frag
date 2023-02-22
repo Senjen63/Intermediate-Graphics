@@ -13,12 +13,6 @@ struct Material
 	float Shininess;
 };
 
-struct Light{
-    vec3 position;
-    float intensity;
-    vec3 color;
-};
-
 struct DirectionalLight
 {
 	vec3 color;
@@ -32,7 +26,8 @@ struct PointLights
 	vec3 color;
 	vec3 position;
 	float intensity;
-	vec3 linearAttenuation;
+	float linearAttenuation;
+	float quadractic;
 	//linear
 };
 
@@ -43,7 +38,7 @@ struct SpotLight
 	vec3 direction;
 	float intensity;
 	float linearAttenuation;
-	float quad;
+	float quadractic;
 	float minAngle;
 	float MaxAngle;
 	//linear and spotlight
@@ -53,12 +48,13 @@ struct SpotLight
 
 #define MAX_LIGHTS 8
 //const int MAX_LIGHTS = 8;
-uniform Light _Lights[MAX_LIGHTS];
 uniform Material _Material;
-uniform DirectionalLight _DirectionalLight;
-uniform PointLights _PointLights[MAX_LIGHTS];
-uniform SpotLight _SpotLight;
+
 uniform vec3 _CameraPosition;
+uniform int _NumberOfLight;
+uniform DirectionalLight _DirectionalLight[MAX_LIGHTS];
+uniform PointLights _PointLights[MAX_LIGHTS];
+uniform SpotLight _SpotLight[MAX_LIGHTS];
 
 
 
@@ -73,32 +69,32 @@ vec3 CalculateAmbient()
 	//return vec3(0);
 }
 
-vec3 CalculateDiffuse(Light light)
+vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor)
 {
 	float diffuseK = _Material.DiffuseK;
-	vec3 diffuseDirection = v_out.WorldPosition - light.position;
-	vec3 diffuseI = light.color;
+	
+	vec3 diffuseI = lightColor;
 
-	vec3 diffuse = diffuseK * dot(normalize(diffuseDirection), normalize(v_out.WorldNormal)) * diffuseI;
+	vec3 diffuse = diffuseK * dot(normalize(lightDirection), normalize(v_out.WorldNormal)) * diffuseI;
 
 	return diffuse;
 }
 
-vec3 CalculateSpecular(Light light, vec3 specular)
+vec3 CalculateSpecular(PointLights pointLight, vec3 specular)
 {
 	float specularK = _Material.SpecularK;
-	vec3 specularR = v_out.WorldPosition - light.position;;
+	vec3 specularR = v_out.WorldPosition - pointLight.position;;
 	vec3 specularV = _CameraPosition - v_out.WorldPosition;
 	float specularA = _Material.Shininess;
-	float specularI = light.intensity;
+	float specularI = pointLight.intensity;
 
 	vec3 specularN = v_out.WorldNormal;
 	vec3 specularH;
 	
-	vec3 specularL = v_out.WorldPosition - light.position;
+	vec3 specularL = v_out.WorldPosition - pointLight.position;
 	
 	
-	vec3 specularC = light.color;
+	vec3 specularC = pointLight.color;
 
 	vec3 r = reflect(specularL, specularN);
 
@@ -126,7 +122,7 @@ vec3 CalculateSpecular(Light light, vec3 specular)
 	return specular;
 }
 
-vec3 CalculateBlinnPhongSpecular(Light light)
+vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float intensity) //
 {
 	float specularK = _Material.SpecularK;
 	vec3 specularN = v_out.WorldNormal;
@@ -134,11 +130,12 @@ vec3 CalculateBlinnPhongSpecular(Light light)
 	vec3 specularV;
 	vec3 specularL;
 	float specularA = _Material.Shininess;
-	float specularI = light.intensity;
-	vec3 specularC = light.color;
+	float specularI = intensity;
+	vec3 specularC = color;
 
-	specularV = _CameraPosition - v_out.WorldPosition;
-	specularL = v_out.WorldPosition - light.position;
+	specularV = _CameraPosition - v_out.WorldPosition; //Direction
+
+	specularL = directionTowardLight;// direction to the light
 
 	specularH = normalize(specularV + specularL);
 
@@ -149,39 +146,62 @@ vec3 CalculateBlinnPhongSpecular(Light light)
 	return specular;
 }
 
-vec3 calculateLight(Light light)
+vec3 calculatePointLight(PointLights pointLight)
 {
 	vec3 PhongShade;
 
-	PhongShade = CalculateDiffuse(light) + CalculateBlinnPhongSpecular(light);
+	vec3 diffuseDirection = pointLight.position - v_out.WorldPosition;
+
+	PhongShade = CalculateDiffuse(diffuseDirection, pointLight.color) + CalculateBlinnPhongSpecular(pointLight);
+	
+	return PhongShade;
+}
+
+vec3 calculateDirectionalLights(DirectionalLight directionalLight)
+{
+	vec3 PhongShade;
+
+	vec3 DirectionTowardsLight = -directionalLight.direction
+
+	PhongShade = CalculateDiffuse(DirectionTowardsLight, directionalLight.color) + CalculateBlinnPhongSpecular(directionalLight);
+	
+	return PhongShade;
+}
+
+vec3 calculateSpotLight(SpotLight spotLight)
+{
+	vec3 PhongShade;
+
+	PhongShade = CalculateDiffuse(spotLight) + CalculateBlinnPhongSpecular(spotLight);
 	
 	return PhongShade;
 }
 
 
 
-float GLFallOff()
+
+float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
 {
-	float Distance = length(v_out.WorldPosition - _SpotLight.position);
-	float I = (1 / _SpotLight.intensity + _SpotLight.linearAttenuation * Distance + _SpotLight.quad * pow(Distance, 2));
+	float Distance = length(v_out.WorldPosition - position);
+	float I = (1 / 1 + linearAttenuation * Distance + quadraticAttenuation * pow(Distance, 2));
 
 	return I;
 }
 
-float AngularAttenuation()
+float AngularAttenuation(SpotLight spotLight)// point light and spot light
 {
 	
 	//FragColor = vec4(0);
 
 	float w = GLFallOff();
 
-	vec3 D = (v_out.WorldPosition - _SpotLight.position) / length(v_out.WorldPosition - _SpotLight.position);
+	vec3 D = (v_out.WorldPosition - spotLight.position) / length(v_out.WorldPosition - spotLight.position);
 
-	float theta = acos(cos(dot(_SpotLight.direction, D)));
+	float theta = dot(normalize(spotLight.direction), D);
 
 	
 
-	float i = pow((theta - _SpotLight.MaxAngle) / (_SpotLight.minAngle - _SpotLight.MaxAngle), w);
+	float i = pow((theta - spotLight.MaxAngle) / (spotLight.minAngle - spotLight.MaxAngle), w);
 
 	return i;
 }
@@ -191,12 +211,22 @@ void main(){
 
 	vec3 lightColor = CalculateAmbient();
 
-	for (int i = 0; i < MAX_LIGHTS; i++)
+	for (int i = 0; i < _NumberOfLight; i++)
 	{
-		lightColor += calculateLight(_Lights[i]);
+		lightColor += calculateLight(_PointLights[i]);
 	}
 
-    FragColor = vec4(abs(normal),1.0f);
+	for (int i = 0; i < _NumberOfLight; i++)
+	{
+		lightColor += calculateLight(_DirectionalLight[i]);
+	}
+
+	for (int i = 0; i < _NumberOfLight; i++)
+	{
+		lightColor += calculateLight(_SpotLight[i]);
+	}
+
+    FragColor = vec4(_Material.Color * lightColor, 1);
 
 	
 }
