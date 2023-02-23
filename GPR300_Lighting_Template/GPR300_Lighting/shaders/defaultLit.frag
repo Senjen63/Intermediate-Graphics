@@ -40,13 +40,13 @@ struct SpotLight
 	float linearAttenuation;
 	float quadractic;
 	float minAngle;
-	float MaxAngle;
+	float maxAngle;
 	//linear and spotlight
 };
 
 
 
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 3
 //const int MAX_LIGHTS = 8;
 uniform Material _Material;
 
@@ -81,48 +81,6 @@ vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor)
 	return diffuse;
 }
 
-vec3 CalculateSpecular(PointLights pointLight, vec3 specular){
-
-	float specularK = _Material.SpecularK;
-	vec3 specularR = v_out.WorldPosition - pointLight.position;;
-	vec3 specularV = _CameraPosition - v_out.WorldPosition;
-	float specularA = _Material.Shininess;
-	float specularI = pointLight.intensity;
-
-	vec3 specularN = v_out.WorldNormal;
-	vec3 specularH;
-	
-	vec3 specularL = v_out.WorldPosition - pointLight.position;
-	
-	
-	vec3 specularC = pointLight.color;
-
-	vec3 r = reflect(specularL, specularN);
-
-	//vec3 specularDirection = v_out.WorldPosition - light.position;
-	//vec3 specularDirection = reflect(v_out.WorldPosition - light.position);
-	//R = redlect(-L,N) P(WorldPosition) = L N= WorldNormal
-	//vec3 viewerDirection;
-	//vec3 viewerDirection = dot(R,C);
-	// Normalize(CameraP - WorldP)
-	
-	//V = direction towards the viewer (camera position - world position)
-	//L = Direction of the light
-	
-	//camera position
-	//direction
-	//Blinn-Phong Specular
-	//H = normalize(V+L)
-	//|| || = magnitude
-
-	float d = dot( normalize( specularR), normalize( specularV));
-
-	specular = specularC * specularK * pow( d, specularA) * specularI;
-
-
-	return specular;
-}
-
 vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float intensity)
 {
 
@@ -134,6 +92,15 @@ vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float in
 	float specularA = _Material.shininess;
 	float specularI = intensity;
 	vec3 specularC = color;
+
+	//camera position
+    //direction
+    //Blinn-Phong Specular
+    //H = normalize(V+L)
+    //|| || = magnitude
+	// Normalize(CameraP - WorldP)
+	//V = direction towards the viewer (camera position - world position)
+	//L = Direction of the light
 
 	specularV = _CameraPosition - v_out.WorldPosition; //Direction
 
@@ -155,8 +122,8 @@ vec3 CalculatePointLight(PointLights pointLight)
 
 	vec3 diffuseDirection = pointLight.position - v_out.WorldPosition;
 
-	phongShade = CalculateDiffuse(diffuseDirection, pointLight.color) + 
-	CalculateBlinnPhongSpecular(diffuseDirection, pointLight.color, pointLight.intensity);
+	phongShade = CalculateDiffuse(diffuseDirection, pointLight.color) 
+	+ CalculateBlinnPhongSpecular(diffuseDirection, pointLight.color, pointLight.intensity);
 	
 	return phongShade;
 }
@@ -207,8 +174,11 @@ float AngularAttenuation(SpotLight spotLight) // point light and spot light
 	vec3 D = (v_out.WorldPosition - spotLight.position) / length(v_out.WorldPosition - spotLight.position);
 
 	float theta = dot(normalize(spotLight.direction), D);
+
+	spotLight.minAngle = cos(radians(spotLight.minAngle));
+	spotLight.maxAngle = cos(radians(spotLight.maxAngle));
 	
-	float i = pow((theta - spotLight.MaxAngle) / (spotLight.minAngle - spotLight.MaxAngle), w);
+	float i = pow((theta - spotLight.maxAngle) / (spotLight.minAngle - spotLight.maxAngle), w);
 
 	return i;
 }
@@ -219,9 +189,11 @@ void main()
 
 	vec3 lightColor = CalculateAmbient();
 
+	//vec3 camera = normalize(_CameraPosition - v_out.WorldPosition);
+
 	for (int i = 0; i < _NumberOfLight; i++)
 	{
-		lightColor += CalculatePointLight(_PointLights[i]);
+		lightColor += CalculatePointLight(_PointLights[i]) ;
 	}
 
 	for (int i = 0; i < _NumberOfLight; i++)

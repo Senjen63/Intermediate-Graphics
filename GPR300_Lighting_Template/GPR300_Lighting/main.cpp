@@ -54,51 +54,52 @@ glm::vec3 bgColor = glm::vec3(0);
 glm::vec3 lightColor = glm::vec3(1.0f);
 
 bool wireFrame = false;
+const int MAX_LIGHTS = 3;
 
 struct DirectionalLight
 {
-	glm::vec3 color;
-	glm::vec3 direction;
-	float intensity;
+	glm::vec3 color = glm::vec3(255, 0, 0);
+	glm::vec3 direction = glm::vec3(0, 1, 0);
+	float intensity = 1.0f;
 	//linear and spotlight
 };
 
 struct PointLights
 {
-	glm::vec3 color;
-	glm::vec3 position;
-	float intensity;
-	float linearAttenuation;
-	float quadractic;
+	glm::vec3 color = glm::vec3(255, 0, 0);
+	glm::vec3 position = glm::vec3(1, 1, 0);
+	float intensity = 1.0f;
+	float linearAttenuation = 1.0f;
+	float quadractic = 1.0f;
 	//linear
 };
 
 struct SpotLight
 {
-	glm::vec3 color;
-	glm::vec3 position;
-	glm::vec3 direction;
-	float intensity;
-	float linearAttenuation;
-	float quadractic;
-	float minAngle;
-	float MaxAngle;
+	glm::vec3 color = glm::vec3(255, 0, 0);
+	glm::vec3 position = glm::vec3(0, 1, 0);
+	glm::vec3 direction = glm::vec3(0, 1, 0);
+	float intensity = 1.0f;
+	float linearAttenuation = 1.0f;
+	float quadractic = 1.0f;
+	float minAngle = 1.0f;
+	float maxAngle = 1.0f;
 	//linear and spotlight
 };
 
 struct Material
 {
-	glm::vec3 color;
-	float ambientK, diffuseK, specularK; //(0 - 1)
-	float shininess;
+	glm::vec3 color = glm::vec3(255, 0, 0);
+	float ambientK = 1.0f, diffuseK = 1.0f, specularK = 1.0f; //(0 - 1)
+	float shininess = 1.0f;
 };
 
 
 
 Material material;
-DirectionalLight directionalLight[];
-PointLights pointLights[];
-SpotLight spotLight[];
+DirectionalLight directionalLight[MAX_LIGHTS];
+PointLights pointLights[MAX_LIGHTS];
+SpotLight spotLight[MAX_LIGHTS];
 
 
 
@@ -184,6 +185,11 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
+	int numLight = 1;
+	float range = 1.0f;
+	float radius = 1.0f;
+	float speed = 1.0f;
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -199,7 +205,7 @@ int main() {
 
 		//UPDATE
 		cubeTransform.rotation.x += deltaTime;
-		int numLight = 1;
+		
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
@@ -223,7 +229,7 @@ int main() {
 			litShader.setVec3("_DirectionalLight[" + std::to_string(i) + "].color", directionalLight[i].color);
 		}
 		
-		for (size_t i = 0; i < 8; i++)
+		for (size_t i = 0; i < numLight; i++)
 		{
 			litShader.setVec3("_SpotLight[" + std::to_string(i) + "].position", spotLight[i].position);
 			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].intensity", spotLight[i].intensity);
@@ -232,14 +238,14 @@ int main() {
 			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].linearAttenuation", spotLight[i].linearAttenuation);
 			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].quadractic", spotLight[i].quadractic);
 			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].minAngle", spotLight[i].minAngle);
-			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].maxAngle", spotLight[i].MaxAngle);
+			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].maxAngle", spotLight[i].maxAngle);
 		}
 
 		litShader.setVec3("_Material.color", material.color);
 		litShader.setFloat("_Material.ambientK", material.ambientK);
 		litShader.setFloat("_Material.diffuseK", material.diffuseK);
 		litShader.setFloat("_Material.specularK", material.specularK);
-		litShader.setFloat("_Material", material.shininess);
+		litShader.setFloat("_Material.shininess", material.shininess);
 		
 
 		//conversion
@@ -289,25 +295,23 @@ int main() {
 		for (size_t d = 0; d < numLight; d++)
 		{
 			ImGui::DragFloat3("Direction", &directionalLight[d].direction.x);
-			ImGui::SliderFloat("Intensity", &directionalLight[d].intensity, 0.0f, 100.0f);
+			ImGui::SliderFloat("Intensity", &directionalLight[d].intensity, 0.0f, 10.0f);
 			ImGui::ColorEdit3("Color", &directionalLight[d].color.r);
 		}
 		ImGui::End();
 
 		ImGui::Begin("Point Lights");
-		ImGui::SliderInt("Number of Point Lights", &numLight, 0.0f, 8.0f);
+		ImGui::SliderInt("Number of Point Lights", &numLight, 0.0f, 3.0f);
 
-		float range = 0.0f;
-		float radius = 0.0f;
-		float speed = 0.0f;
+		
 
 		for (size_t p = 0; p < numLight; p++)
 		{
 			ImGui::SliderFloat("Point Light Range", &range, 0.0f, 100.0f);
-			ImGui::SliderFloat("Point Light Intensity", &pointLights[p].intensity, 0.0f, 100.0f);
+			ImGui::SliderFloat("Point Light Intensity", &pointLights[p].intensity, 0.0f, 10.0f);
 			ImGui::DragFloat3("Point Light Orbit Center", &lightTransform.position.x);
 			ImGui::SliderFloat("Point Light Orbit Radius", &radius, 0.0f, 100.0f);
-			ImGui::SliderFloat("Point Light Orbit Speed", &speed, 0.0f, 100.0f);
+			ImGui::SliderFloat("Point Light Orbit Speed", &speed, 0.0f, 50.0f);
 		}		
 		ImGui::End();
 
@@ -316,12 +320,12 @@ int main() {
 		for (size_t s = 0; s < numLight; s++)
 		{
 			ImGui::DragFloat3("Spot Light Position", &spotLight[s].position.x);
-			ImGui::DragFloat3("Spot Light Direction", &spotLight[s].position.x);
-			ImGui::SliderFloat("Spot Light Intensity", &spotLight[s].intensity, 0.0f, 100.0f);
+			ImGui::DragFloat3("Spot Light Direction", &spotLight[s].direction.x);
+			ImGui::SliderFloat("Spot Light Intensity", &spotLight[s].intensity, 0.0f, 10.0f);
 			ImGui::ColorEdit3("Color", &spotLight[s].color.r);
 			ImGui::SliderFloat("Spot Light Range", &range, 0.0f, 100.0f);
 			ImGui::SliderFloat("Spot Light Inner Angle", &spotLight[s].minAngle, 0.0f, 100.0f);
-			ImGui::SliderFloat("Spot Light Outer Angle", &spotLight[s].MaxAngle, 0.0f, 100.0f);
+			ImGui::SliderFloat("Spot Light Outer Angle", &spotLight[s].maxAngle, 0.0f, 100.0f);
 			ImGui::SliderFloat("Point Light Angle Falloff", &spotLight[s].linearAttenuation, 0.0f, 100.0f);
 		}		
 		ImGui::End();
