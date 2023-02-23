@@ -58,7 +58,8 @@ uniform SpotLight _SpotLight[MAX_LIGHTS];
 
 
 
-vec3 CalculateAmbient(){
+vec3 CalculateAmbient()
+{
 
 	float ambientK = _Material.ambientK;
 	vec3 ambientI = _Material.color;
@@ -68,7 +69,8 @@ vec3 CalculateAmbient(){
 	return ambient;
 }
 
-vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor){
+vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor)
+{
 
 	float diffuseK = _Material.diffuseK;
 	
@@ -121,7 +123,8 @@ vec3 CalculateSpecular(PointLights pointLight, vec3 specular){
 	return specular;
 }
 
-vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float intensity){
+vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float intensity)
+{
 
 	float specularK = _Material.specularK;
 	vec3 specularN = v_out.WorldNormal;
@@ -145,7 +148,8 @@ vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float in
 	return specular;
 }
 
-vec3 CalculatePointLight(PointLights pointLight){
+vec3 CalculatePointLight(PointLights pointLight)
+{
 
 	vec3 phongShade;
 
@@ -157,7 +161,8 @@ vec3 CalculatePointLight(PointLights pointLight){
 	return phongShade;
 }
 
-vec3 CalculateDirectionalLights(DirectionalLight directionalLight){
+vec3 CalculateDirectionalLights(DirectionalLight directionalLight)
+{
 
 	vec3 phongShade;
 
@@ -169,7 +174,8 @@ vec3 CalculateDirectionalLights(DirectionalLight directionalLight){
 	return phongShade;
 }
 
-vec3 CalculateSpotLight(SpotLight spotLight){
+vec3 CalculateSpotLight(SpotLight spotLight)
+{
 
 	vec3 phongShade;
 
@@ -181,7 +187,8 @@ vec3 CalculateSpotLight(SpotLight spotLight){
 	return phongShade;
 }
 
-float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position){
+float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
+{
 
 	float Distance = length(v_out.WorldPosition - position);
 	float I = (1 / 1 + linearAttenuation * Distance + quadraticAttenuation * pow(Distance, 2));
@@ -189,7 +196,8 @@ float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 positi
 	return I;
 }
 
-float AngularAttenuation(SpotLight spotLight){// point light and spot light
+float AngularAttenuation(SpotLight spotLight) // point light and spot light
+{
 
 	
 	//FragColor = vec4(0);
@@ -205,7 +213,8 @@ float AngularAttenuation(SpotLight spotLight){// point light and spot light
 	return i;
 }
 
-void main(){      
+void main()
+{      
     //vec3 normal = normalize(v_out.WorldNormal);
 
 	vec3 lightColor = CalculateAmbient();
@@ -222,7 +231,7 @@ void main(){
 
 	for (int i = 0; i < _NumberOfLight; i++)
 	{
-		lightColor += CalculateSpotLight(_SpotLight[i]);
+		lightColor += CalculateSpotLight(_SpotLight[i]) + AngularAttenuation(_SpotLight[i]);
 	}
 
     FragColor = vec4(_Material.color * lightColor, 1);
