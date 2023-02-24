@@ -169,7 +169,7 @@ float AngularAttenuation(SpotLight spotLight) // point light and spot light
 	
 	//FragColor = vec4(0);
 
-	float w = GLFallOff(spotLight.linearAttenuation, spotLight.quadractic, spotLight.position);
+	float w = GLFallOff(spotLight.linearAttenuation, spotLight.quadractic, spotLight.position) + 1.0f;
 
 	vec3 D = (v_out.WorldPosition - spotLight.position) / length(v_out.WorldPosition - spotLight.position);
 
@@ -203,7 +203,7 @@ void main()
 
 	for (int i = 0; i < _NumberOfLight; i++)
 	{
-		lightColor += CalculateSpotLight(_SpotLight[i]) + AngularAttenuation(_SpotLight[i]);
+		lightColor += AngularAttenuation(_SpotLight[i]) * CalculateSpotLight(_SpotLight[i]) ;
 	}
 
     FragColor = vec4(_Material.color * lightColor, 1);
