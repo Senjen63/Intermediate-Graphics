@@ -58,7 +58,7 @@ const int MAX_LIGHTS = 3;
 
 struct DirectionalLight
 {
-	glm::vec3 color = glm::vec3(255, 0, 0);
+	glm::vec3 color = glm::vec3(1, 0, 0);
 	glm::vec3 direction = glm::vec3(0, 1, 0);
 	float intensity = 1.0f;
 	//linear and spotlight
@@ -66,17 +66,17 @@ struct DirectionalLight
 
 struct PointLights
 {
-	glm::vec3 color = glm::vec3(255, 0, 0);
+	glm::vec3 color = glm::vec3(1, 0, 0);
 	glm::vec3 position = glm::vec3(1, 1, 0);
 	float intensity = 1.0f;
-	float linearAttenuation = 1.0f;
-	float quadractic = 1.0f;
+	float linearAttenuation = 0.22f;
+	float quadractic = 0.2f;
 	//linear
 };
 
 struct SpotLight
 {
-	glm::vec3 color = glm::vec3(255, 0, 0);
+	glm::vec3 color = glm::vec3(1, 0, 0);
 	glm::vec3 position = glm::vec3(0, 1, 0);
 	glm::vec3 direction = glm::vec3(0, 1, 0);
 	float intensity = 1.0f;
@@ -89,9 +89,9 @@ struct SpotLight
 
 struct Material
 {
-	glm::vec3 color = glm::vec3(255, 0, 0);
-	float ambientK = 1.0f, diffuseK = 1.0f, specularK = 1.0f; //(0 - 1)
-	float shininess = 1.0f;
+	glm::vec3 color = glm::vec3(1, 0, 0);
+	float ambientK = 0.25f, diffuseK = 0.5f, specularK = 0.5f; //(0 - 1)
+	float shininess = 64.0f;
 };
 
 
@@ -288,14 +288,14 @@ int main() {
 		ImGui::SliderFloat("Material Ambient K", &material.ambientK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Material Diffuse K", &material.diffuseK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Material Specular K", &material.specularK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Shininess", &material.shininess, 1.0f, 512.0f);
+		ImGui::SliderFloat("Material Shininess", &material.shininess, 2.0f, 512.0f);
 		ImGui::End();
 
 		ImGui::Begin("Directional Light");
 		for (size_t d = 0; d < numLight; d++)
 		{
 			ImGui::DragFloat3("Direction", &directionalLight[d].direction.x);
-			ImGui::SliderFloat("Intensity", &directionalLight[d].intensity, 0.0f, 10.0f);
+			ImGui::SliderFloat("Intensity", &directionalLight[d].intensity, 0.0f, 1.0f);
 			ImGui::ColorEdit3("Color", &directionalLight[d].color.r);
 		}
 		ImGui::End();
@@ -307,11 +307,10 @@ int main() {
 
 		for (size_t p = 0; p < numLight; p++)
 		{
-			ImGui::SliderFloat("Point Light Range", &range, 0.0f, 100.0f);
-			ImGui::SliderFloat("Point Light Intensity", &pointLights[p].intensity, 0.0f, 10.0f);
+			ImGui::SliderFloat("Point Light Intensity", &pointLights[p].intensity, 0.0f, 1.0f);
+			ImGui::SliderFloat("Point Light Linear", &pointLights[p].linearAttenuation, 0.0f, 1.0f);
+			ImGui::SliderFloat("Point Light Quadratic", &pointLights[p].quadractic, 0.0f, 1.0f);
 			ImGui::DragFloat3("Point Light Orbit Center", &lightTransform.position.x);
-			ImGui::SliderFloat("Point Light Orbit Radius", &radius, 0.0f, 100.0f);
-			ImGui::SliderFloat("Point Light Orbit Speed", &speed, 0.0f, 50.0f);
 		}		
 		ImGui::End();
 
@@ -321,7 +320,7 @@ int main() {
 		{
 			ImGui::DragFloat3("Spot Light Position", &spotLight[s].position.x);
 			ImGui::DragFloat3("Spot Light Direction", &spotLight[s].direction.x);
-			ImGui::SliderFloat("Spot Light Intensity", &spotLight[s].intensity, 0.0f, 10.0f);
+			ImGui::SliderFloat("Spot Light Intensity", &spotLight[s].intensity, 0.0f, 1.0f);
 			ImGui::ColorEdit3("Color", &spotLight[s].color.r);
 			ImGui::SliderFloat("Spot Light Range", &range, 0.0f, 100.0f);
 			ImGui::SliderFloat("Spot Light Inner Angle", &spotLight[s].minAngle, 0.0f, 100.0f);
