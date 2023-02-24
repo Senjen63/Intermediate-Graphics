@@ -97,9 +97,9 @@ struct Material
 
 
 Material material;
-DirectionalLight directionalLight[MAX_LIGHTS];
+DirectionalLight directionalLight;
 PointLights pointLights[MAX_LIGHTS];
-SpotLight spotLight[MAX_LIGHTS];
+SpotLight spotLight;
 
 
 
@@ -186,9 +186,6 @@ int main() {
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
 	int numLight = 1;
-	float range = 1.0f;
-	float radius = 1.0f;
-	float speed = 1.0f;
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -222,24 +219,18 @@ int main() {
 			litShader.setFloat("_PointLights[" + std::to_string(i) + "].quadractic", pointLights[i].quadractic);
 		}
 
-		for (size_t i = 0; i < numLight; i++)
-		{
-			litShader.setVec3("_DirectionalLight[" + std::to_string(i) + "].direction", directionalLight[i].direction);
-			litShader.setFloat("_DirectionalLight[" + std::to_string(i) + "].intensity", directionalLight[i].intensity);
-			litShader.setVec3("_DirectionalLight[" + std::to_string(i) + "].color", directionalLight[i].color);
-		}
+		litShader.setVec3("_DirectionalLight.direction", directionalLight.direction);
+		litShader.setFloat("_DirectionalLight.intensity", directionalLight.intensity);
+		litShader.setVec3("_DirectionalLight.color", directionalLight.color);
 		
-		for (size_t i = 0; i < numLight; i++)
-		{
-			litShader.setVec3("_SpotLight[" + std::to_string(i) + "].position", spotLight[i].position);
-			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].intensity", spotLight[i].intensity);
-			litShader.setVec3("_SpotLight[" + std::to_string(i) + "].color", spotLight[i].color);
-			litShader.setVec3("_SpotLight[" + std::to_string(i) + "].direction", spotLight[i].direction);
-			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].linearAttenuation", spotLight[i].linearAttenuation);
-			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].quadractic", spotLight[i].quadractic);
-			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].minAngle", spotLight[i].minAngle);
-			litShader.setFloat("_SpotLight[" + std::to_string(i) + "].maxAngle", spotLight[i].maxAngle);
-		}
+		litShader.setVec3("_SpotLight.position", spotLight.position);
+		litShader.setFloat("_SpotLight.intensity", spotLight.intensity);
+		litShader.setVec3("_SpotLight.color", spotLight.color);
+		litShader.setVec3("_SpotLight.direction", spotLight.direction);
+		litShader.setFloat("_SpotLight.linearAttenuation", spotLight.linearAttenuation);
+		litShader.setFloat("_SpotLight.quadractic", spotLight.quadractic);
+		litShader.setFloat("_SpotLight.minAngle", spotLight.minAngle);
+		litShader.setFloat("_SpotLight.maxAngle", spotLight.maxAngle);
 
 		litShader.setVec3("_Material.color", material.color);
 		litShader.setFloat("_Material.ambientK", material.ambientK);
@@ -283,7 +274,6 @@ int main() {
 		
 		//Draw UI
 		ImGui::Begin("Material");
-
 		ImGui::ColorEdit3("Material Color", &material.color.r);
 		ImGui::SliderFloat("Material Ambient K", &material.ambientK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Material Diffuse K", &material.diffuseK, 0.0f, 1.0f);
@@ -292,19 +282,13 @@ int main() {
 		ImGui::End();
 
 		ImGui::Begin("Directional Light");
-		for (size_t d = 0; d < numLight; d++)
-		{
-			ImGui::DragFloat3("Direction", &directionalLight[d].direction.x);
-			ImGui::SliderFloat("Intensity", &directionalLight[d].intensity, 0.0f, 1.0f);
-			ImGui::ColorEdit3("Color", &directionalLight[d].color.r);
-		}
+		ImGui::DragFloat3("Direction", &directionalLight.direction.x);
+		ImGui::SliderFloat("Intensity", &directionalLight.intensity, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Color", &directionalLight.color.r);
 		ImGui::End();
 
 		ImGui::Begin("Point Lights");
 		ImGui::SliderInt("Number of Point Lights", &numLight, 0.0f, 3.0f);
-
-		
-
 		for (size_t p = 0; p < numLight; p++)
 		{
 			ImGui::SliderFloat("Point Light Intensity", &pointLights[p].intensity, 0.0f, 1.0f);
@@ -315,18 +299,14 @@ int main() {
 		ImGui::End();
 
 		ImGui::Begin("Spot Light");
-
-		for (size_t s = 0; s < numLight; s++)
-		{
-			ImGui::DragFloat3("Spot Light Position", &spotLight[s].position.x);
-			ImGui::DragFloat3("Spot Light Direction", &spotLight[s].direction.x);
-			ImGui::SliderFloat("Spot Light Intensity", &spotLight[s].intensity, 0.0f, 1.0f);
-			ImGui::ColorEdit3("Color", &spotLight[s].color.r);
-			ImGui::SliderFloat("Spot Light Range", &range, 0.0f, 100.0f);
-			ImGui::SliderFloat("Spot Light Inner Angle", &spotLight[s].minAngle, 0.0f, 100.0f);
-			ImGui::SliderFloat("Spot Light Outer Angle", &spotLight[s].maxAngle, 0.0f, 100.0f);
-			ImGui::SliderFloat("Point Light Angle Falloff", &spotLight[s].linearAttenuation, 0.0f, 100.0f);
-		}		
+		ImGui::DragFloat3("Spot Light Position", &spotLight.position.x);
+		ImGui::DragFloat3("Spot Light Direction", &spotLight.direction.x);
+		ImGui::SliderFloat("Spot Light Intensity", &spotLight.intensity, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Color", &spotLight.color.r);
+		//ImGui::SliderFloat("Spot Light Range", &range, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Inner Angle", &spotLight.minAngle, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Outer Angle", &spotLight.maxAngle, 0.0f, 100.0f);
+		ImGui::SliderFloat("Point Light Angle Falloff", &spotLight.linearAttenuation, 0.0f, 100.0f);		
 		ImGui::End();
 
 		ImGui::Render();

@@ -52,9 +52,9 @@ uniform Material _Material;
 
 uniform vec3 _CameraPosition;
 uniform int _NumberOfLight;
-uniform DirectionalLight _DirectionalLight[MAX_LIGHTS];
+uniform DirectionalLight _DirectionalLight;
 uniform PointLights _PointLights[MAX_LIGHTS];
-uniform SpotLight _SpotLight[MAX_LIGHTS];
+uniform SpotLight _SpotLight;
 
 float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
 {
@@ -195,26 +195,14 @@ vec3 CalculateSpotLight(SpotLight spotLight)
 
 void main()
 {      
-    //vec3 normal = normalize(v_out.WorldNormal);
-
-	vec3 lightColor  = vec3(0)/*= CalculateAmbient()*/;
-
-	//vec3 camera = normalize(_CameraPosition - v_out.WorldPosition);
-
-//	for (int i = 0; i < _NumberOfLight; i++)
-//	{
-//		lightColor += CalculatePointLight(_PointLights[i]);
-//	}
-//
-//	for (int i = 0; i < _NumberOfLight; i++)
-//	{
-//		lightColor += CalculateDirectionalLights(_DirectionalLight[i]);
-//	}
+    vec3 lightColor  = vec3(0);
 
 	for (int i = 0; i < _NumberOfLight; i++)
 	{
-		lightColor += CalculateSpotLight(_SpotLight[i]) * AngularAttenuation(_SpotLight[i]);
+		lightColor += CalculatePointLight(_PointLights[i]);
 	}
+
+	lightColor += CalculateDirectionalLights(_DirectionalLight) + CalculateSpotLight(_SpotLight) * AngularAttenuation(_SpotLight);
 
     FragColor = vec4(_Material.color * lightColor, 1);
 }
