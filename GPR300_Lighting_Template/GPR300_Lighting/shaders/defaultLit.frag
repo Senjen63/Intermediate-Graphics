@@ -41,6 +41,7 @@ struct SpotLight
 	float quadractic;
 	float minAngle;
 	float maxAngle;
+	float angleFallOff;
 	//linear and spotlight
 };
 
@@ -71,7 +72,8 @@ float AngularAttenuation(SpotLight spotLight) // point light and spot light
 	
 	//FragColor = vec4(0);
 
-	float w = 2 /*GLFallOff(spotLight.linearAttenuation, spotLight.quadractic, spotLight.position) + 1.0f*/;
+	//float w = 2;
+	float w = spotLight.angleFallOff;
 
 	vec3 D = normalize(v_out.WorldPosition - spotLight.position);
 
