@@ -51,8 +51,11 @@ const float CAMERA_ZOOM_SPEED = 3.0f;
 Camera camera((float)SCREEN_WIDTH / (float)SCREEN_HEIGHT);
 
 glm::vec3 bgColor = glm::vec3(0);
-glm::vec3 lightColor = glm::vec3(1.0f);
+//glm::vec3 lightColor = glm::vec3(1.0f);
 //glm::vec3 lightColor2 = glm::vec3(1.0f);
+
+glm::vec3 lightColor;
+
 
 bool wireFrame = false;
 const int MAX_LIGHTS = 3;
@@ -100,7 +103,8 @@ struct Material
 
 Material material;
 DirectionalLight directionalLight;
-PointLights pointLights[MAX_LIGHTS];
+//PointLights pointLights[MAX_LIGHTS];
+PointLights pointLights;
 SpotLight spotLight;
 
 
@@ -216,14 +220,21 @@ int main() {
 		litShader.setInt("_NumberOfLight", numLight);
 		
 		//Point Light Uniforms
-		for (size_t i = 0; i < numLight; i++)
+		litShader.setVec3("_PointLights.position", pointLights.position);
+		litShader.setFloat("_PointLights.intensity", pointLights.intensity);
+		litShader.setVec3("_PointLights.color", pointLights.color);
+		litShader.setFloat("_PointLights.linearAttenuation", pointLights.linearAttenuation);
+		litShader.setFloat("_PointLights.quadractic", pointLights.quadractic);
+
+		//Couldn't figure out array problem
+		/*for (size_t i = 0; i < numLight; i++)
 		{
 			litShader.setVec3("_PointLights[" + std::to_string(i) + "].position", pointLights[i].position);
 			litShader.setFloat("_PointLights[" + std::to_string(i) + "].intensity", pointLights[i].intensity);
 			litShader.setVec3("_PointLights[" + std::to_string(i) + "].color", pointLights[i].color);
 			litShader.setFloat("_PointLights[" + std::to_string(i) + "].linearAttenuation", pointLights[i].linearAttenuation);
 			litShader.setFloat("_PointLights[" + std::to_string(i) + "].quadractic", pointLights[i].quadractic);
-		}
+		}*/
 
 		//Directional Light Uniforms
 		litShader.setVec3("_DirectionalLight.direction", directionalLight.direction);
@@ -277,6 +288,7 @@ int main() {
 		unlitShader.setMat4("_Projection", camera.getProjectionMatrix());
 		unlitShader.setMat4("_View", camera.getViewMatrix());
 
+		//Couldn't figure out array problem
 		/*for (int l = 0; l < numLight; l++)
 		{
 			unlitShader.setMat4("_Model", lightTransform[l].getModelMatrix());
@@ -284,21 +296,37 @@ int main() {
 
 		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
 		
+		//Couldn't figure out array problem
+		/*for (int i = 0; i < numLight; i++)
+		{
+			unlitShader.setVec3("_Color", lightColor[i]);
+		}*/
+
 		unlitShader.setVec3("_Color", lightColor);
+		
+		
+
 		sphereMesh.draw();
 
+		//Couldn't figure out array problem
 		/*lightColor = pointLights[0].color;
 		lightColor2 = pointLights[1].color;*/
 
-		for (int i = 0; i < numLight; i++)
+		/*for (int i = 0; i < numLight; i++)
 		{
-			lightColor = pointLights[i].color;
+			lightColor[i] = pointLights[i].color;
 		}
 
 		for (int i = 0; i < numLight; i++)
 		{
 			lightTransform.position = pointLights[i].position;
-		}
+		}*/
+
+		lightColor = pointLights.color;
+		
+
+		lightTransform.position = pointLights.position;
+		
 		
 		
 		
@@ -319,31 +347,22 @@ int main() {
 		ImGui::End();
 
 		ImGui::Begin("Point Lights");
-		ImGui::SliderInt("Number of Point Lights", &numLight, 0.0f, 2.0f);
+		//ImGui::SliderInt("Number of Point Lights", &numLight, 0.0f, 2.0f);
 
-		for (int p = 0; p < numLight; p++)
+		ImGui::SliderFloat("Point Light Intensity", &pointLights.intensity, 0.0f, 1.0f);
+		ImGui::SliderFloat("Point Light Linear", &pointLights.linearAttenuation, 0.0f, 1.0f);
+		ImGui::SliderFloat("Point Light Quadratic", &pointLights.quadractic, 0.0f, 1.0f);
+		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
+		ImGui::ColorEdit3("Point Light Color", &pointLights.color.r);
+		
+		//Couldn't figure out array problem
+		/*for (int p = 0; p < numLight; p++)
 		{
 			ImGui::SliderFloat("Point Light Intensity", &pointLights[p].intensity, 0.0f, 1.0f);
 			ImGui::SliderFloat("Point Light Linear", &pointLights[p].linearAttenuation, 0.0f, 1.0f);
 			ImGui::SliderFloat("Point Light Quadratic", &pointLights[p].quadractic, 0.0f, 1.0f);
 			ImGui::DragFloat3("Point Light position", &pointLights[p].position.x);
 			ImGui::ColorEdit3("Point Light Color", &pointLights[p].color.r);
-		}
-
-		
-		/*ImGui::SliderFloat("Point Light Intensity", &pointLights[0].intensity, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Linear", &pointLights[0].linearAttenuation, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Quadratic", &pointLights[0].quadractic, 0.0f, 1.0f);
-		ImGui::DragFloat3("Point Light position", &pointLights[0].position.x);
-		ImGui::ColorEdit3("Point Light Color", &pointLights->color.b);
-
-		if (numLight > 1)
-		{
-			ImGui::SliderFloat("Point Light Intensity", &pointLights[1].intensity, 0.0f, 1.0f);
-			ImGui::SliderFloat("Point Light Linear", &pointLights[1].linearAttenuation, 0.0f, 1.0f);
-			ImGui::SliderFloat("Point Light Quadratic", &pointLights[1].quadractic, 0.0f, 1.0f);
-			ImGui::DragFloat3("Point Light position", &pointLights[1].position.x);
-			ImGui::ColorEdit3("Point Light Color", &pointLights->color.b);
 		}*/
 
 		ImGui::End();

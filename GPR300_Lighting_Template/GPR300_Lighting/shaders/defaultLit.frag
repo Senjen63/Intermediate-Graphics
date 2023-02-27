@@ -54,7 +54,8 @@ uniform Material _Material;
 uniform vec3 _CameraPosition;
 uniform int _NumberOfLight;
 uniform DirectionalLight _DirectionalLight;
-uniform PointLights _PointLights[MAX_LIGHTS];
+//uniform PointLights _PointLights[MAX_LIGHTS];
+uniform PointLights _PointLights;
 uniform SpotLight _SpotLight;
 
 float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
@@ -199,10 +200,13 @@ void main()
 {      
     vec3 lightColor  = vec3(0);
 
-	for (int i = 0; i < _NumberOfLight; i++)
-	{
-		lightColor += CalculatePointLight(_PointLights[i]);
-	}
+	lightColor += CalculatePointLight(_PointLights);
+	
+
+//	for (int i = 0; i < _NumberOfLight; i++)
+//	{
+//		lightColor += CalculatePointLight(_PointLights[i]);
+//	}
 
 	lightColor += CalculateDirectionalLights(_DirectionalLight) + CalculateSpotLight(_SpotLight) * AngularAttenuation(_SpotLight);
 
