@@ -226,11 +226,16 @@ int main() {
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
+		float sliderF = 0.0f;
+		int sliderI = 0;
+
 		//Draw UI
 		ImGui::Begin("Settings");
 
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::DragFloat2("Texture Scroll Speed", &sliderF);
+		ImGui::DragInt2("Texture Tiling", &sliderI);
 		ImGui::End();
 
 		ImGui::Render();
