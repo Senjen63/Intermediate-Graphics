@@ -107,6 +107,46 @@ DirectionalLight directionalLight;
 PointLights pointLights;
 SpotLight spotLight;
 
+GLuint createTexture(const char* filePath)
+{
+	GLuint texture = 0;
+	GLuint texture2 = 5;
+	GLuint texture3 = 10;
+	int width = 0;
+	int height = 0;
+	int numComponents = 8;
+
+	stbi_set_flip_vertically_on_load(true);
+
+	unsigned char* textureData = stbi_load(filePath, &width, &height, &numComponents, 0);
+
+	glGenTextures(1, &texture);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	GL_NEAREST_MIPMAP_NEAREST;
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture3);
+
+
+
+	return 0;
+}
+
 
 
 int main() {
@@ -193,8 +233,11 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 	
-	
+	litShader.setInt("_ColorTexture", 0);
+	litShader.setInt("_NormalTexture", 1);
 
+	float speed = 0.0f;
+	int texture = 0;
 	
 
 	while (!glfwWindowShouldClose(window)) {
@@ -377,6 +420,11 @@ int main() {
 		ImGui::SliderFloat("Spot Light Angle Falloff", &spotLight.angleFallOff, 0.0f, 100.0f);
 		ImGui::SliderFloat("Spot Light Linear", &spotLight.linearAttenuation, 0.0f, 100.0f);
 		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
+		ImGui::End();
+
+		ImGui::Begin("Texture");
+		ImGui::DragFloat2("Texture Scroll Speed", &speed);
+		ImGui::DragInt2("Texture Tiling", &texture);
 		ImGui::End();
 
 		ImGui::Render();
