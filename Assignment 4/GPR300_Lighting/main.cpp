@@ -63,7 +63,7 @@ GLuint createTexture(const char* filePath)
 	GLuint texture3 = 10;
 	int width = 0;
 	int height = 0;
-	int numComponents = 8;
+	int numComponents = 3;
 
 	stbi_set_flip_vertically_on_load(true);
 
@@ -134,6 +134,10 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
+	const char file = 7;
+
+	GLuint UV = createTexture(&file);
+
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData, glm::vec2(1));
 	ew::MeshData sphereMeshData;
@@ -162,6 +166,8 @@ int main() {
 	//Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
+	
 
 	//Initialize shape transforms
 	ew::Transform cubeTransform;
@@ -226,8 +232,8 @@ int main() {
 		unlitShader.setVec3("_Color", lightColor);
 		sphereMesh.draw();
 
-		float sliderF = 0.0f;
-		int sliderI = 0;
+		float sliderF = 2.0f;
+		int sliderI = 5;
 
 		//Draw UI
 		ImGui::Begin("Settings");
