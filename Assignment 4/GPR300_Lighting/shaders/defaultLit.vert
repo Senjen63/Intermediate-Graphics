@@ -10,6 +10,7 @@ uniform mat4 _Projection;
 
 out vec3 Normal;
 out vec2 UV;
+//out vec3 TBN;
 
 void main(){    
     Normal = vNormal;
