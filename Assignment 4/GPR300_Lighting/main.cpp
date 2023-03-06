@@ -136,16 +136,16 @@ int main() {
 
 	const char file = 7;
 
-	GLuint UV = createTexture(&file);
+	glm::vec2 UV = (glm::vec2)createTexture(&file);
 
 	ew::MeshData cubeMeshData;
-	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData, glm::vec2(1));
+	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData, UV);
 	ew::MeshData sphereMeshData;
-	ew::createSphere(0.5f, 64, sphereMeshData, glm::vec2(1));
+	ew::createSphere(0.5f, 64, sphereMeshData, UV);
 	ew::MeshData cylinderMeshData;
-	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData, glm::vec2(1));
+	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData, UV);
 	ew::MeshData planeMeshData;
-	ew::createPlane(1.0f, 1.0f, planeMeshData, glm::vec2(1));
+	ew::createPlane(1.0f, 1.0f, planeMeshData, UV);
 
 	ew::Mesh cubeMesh(&cubeMeshData);
 	ew::Mesh sphereMesh(&sphereMeshData);
