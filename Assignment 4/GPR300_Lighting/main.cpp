@@ -55,12 +55,11 @@ glm::vec3 lightColor = glm::vec3(1.0f);
 glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, 0.0f);
 
 bool wireFrame = false;
+bool flip = true;
 
 GLuint createTexture(const char* filePath)
 {
 	GLuint texture = 0;
-	GLuint texture2 = 5;
-	GLuint texture3 = 10;
 	int width = 0;
 	int height = 0;
 	int numComponents = 3;
@@ -73,27 +72,39 @@ GLuint createTexture(const char* filePath)
 
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+	switch(numComponents)
+	{
+	case 1:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R, width, height, 0, GL_R, GL_UNSIGNED_BYTE, textureData);
+		break;
+	case 2:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, textureData);
+		break;
+	case 3:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+		break;
+	case 4:
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData);
+		break;
+	}
 
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	GL_NEAREST_MIPMAP_NEAREST;
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texture3);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	/*glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture3);*/
 
 
 
-	return 0;
+	return texture;
 }
 
 int main() {
@@ -134,26 +145,33 @@ int main() {
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
-	const char file = 7;
+	const char* woodFloorFile = "Texture/WoodFloor051_1K_Color.png";
+	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 
-	glm::vec2 UV = (glm::vec2)createTexture(&file);
+	GLuint texture = createTexture(woodFloorFile);
+	GLuint texture2 = createTexture(bricksFile);
 
-	ew::MeshData cubeMeshData;
-	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData, UV);
+	
+
+	/*ew::MeshData cubeMeshData;
+	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
 	ew::MeshData sphereMeshData;
-	ew::createSphere(0.5f, 64, sphereMeshData, UV);
+	ew::createSphere(0.5f, 64, sphereMeshData);
 	ew::MeshData cylinderMeshData;
-	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData, UV);
+	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
-	ew::createPlane(1.0f, 1.0f, planeMeshData, UV);
+	ew::createPlane(1.0f, 1.0f, planeMeshData);*/
 
-	ew::Mesh cubeMesh(&cubeMeshData);
+
+	/*ew::Mesh cubeMesh(&cubeMeshData);
 	ew::Mesh sphereMesh(&sphereMeshData);
 	ew::Mesh planeMesh(&planeMeshData);
-	ew::Mesh cylinderMesh(&cylinderMeshData);
+	ew::Mesh cylinderMesh(&cylinderMeshData);*/
+	
 
 	ew::MeshData quadMeshData;
-	ew::createQuad(1.0f, 1.0f, quadMeshData, glm::vec2(1));
+	ew::createQuad(1.0f, 1.0f, quadMeshData);
+	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
 	glEnable(GL_CULL_FACE);
@@ -205,24 +223,27 @@ int main() {
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 		litShader.setVec3("_LightPos", lightTransform.position);
+		litShader.setInt("_WoodFloor", texture);
+		litShader.setInt("_Brick", texture2);
+
 		//Draw cube
+		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		//cubeMesh.draw();
+
+		////Draw sphere
+		//litShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		//sphereMesh.draw();
+
+		////Draw cylinder
+		//litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		//cylinderMesh.draw();
+
+		////Draw plane
+		//litShader.setMat4("_Model", planeTransform.getModelMatrix());
+		//planeMesh.draw();
+
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		cubeMesh.draw();
-
-		//Draw sphere
-		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		sphereMesh.draw();
-
-		//Draw cylinder
-		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		cylinderMesh.draw();
-
-		//Draw plane
-		litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		planeMesh.draw();
-
-		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		//quadMesh.draw();
+		quadMesh.draw();
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -230,7 +251,7 @@ int main() {
 		unlitShader.setMat4("_View", camera.getViewMatrix());
 		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
-		sphereMesh.draw();
+		/*sphereMesh.draw();*/
 
 		float sliderF = 2.0f;
 		int sliderI = 5;
