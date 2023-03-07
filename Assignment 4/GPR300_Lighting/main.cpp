@@ -149,24 +149,34 @@ int main() {
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 
 	GLuint texture = createTexture(woodFloorFile);
-	GLuint texture2 = createTexture(bricksFile);
+
+	/*if (flip)
+	{
+		texture = createTexture(woodFloorFile);
+	}
+
+	else
+	{
+		texture = createTexture(bricksFile);
+	}*/
+	
 
 	
 
-	/*ew::MeshData cubeMeshData;
+	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
 	ew::MeshData sphereMeshData;
 	ew::createSphere(0.5f, 64, sphereMeshData);
 	ew::MeshData cylinderMeshData;
 	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
-	ew::createPlane(1.0f, 1.0f, planeMeshData);*/
+	ew::createPlane(1.0f, 1.0f, planeMeshData);
 
 
-	/*ew::Mesh cubeMesh(&cubeMeshData);
+	ew::Mesh cubeMesh(&cubeMeshData);
 	ew::Mesh sphereMesh(&sphereMeshData);
 	ew::Mesh planeMesh(&planeMeshData);
-	ew::Mesh cylinderMesh(&cylinderMeshData);*/
+	ew::Mesh cylinderMesh(&cylinderMeshData);
 	
 
 	ew::MeshData quadMeshData;
@@ -224,23 +234,23 @@ int main() {
 		litShader.setMat4("_View", camera.getViewMatrix());
 		litShader.setVec3("_LightPos", lightTransform.position);
 		litShader.setInt("_WoodFloor", texture);
-		litShader.setInt("_Brick", texture2);
+		litShader.setInt("_Brick", texture);
 
 		//Draw cube
-		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		//cubeMesh.draw();
+		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		cubeMesh.draw();
 
-		////Draw sphere
-		//litShader.setMat4("_Model", sphereTransform.getModelMatrix());
-		//sphereMesh.draw();
+		//Draw sphere
+		litShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw();
 
-		////Draw cylinder
-		//litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
-		//cylinderMesh.draw();
+		//Draw cylinder
+		litShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw();
 
-		////Draw plane
-		//litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		//planeMesh.draw();
+		//Draw plane
+		litShader.setMat4("_Model", planeTransform.getModelMatrix());
+		planeMesh.draw();
 
 		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		quadMesh.draw();
@@ -263,6 +273,7 @@ int main() {
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
 		ImGui::DragFloat2("Texture Scroll Speed", &sliderF);
 		ImGui::DragInt2("Texture Tiling", &sliderI);
+		//ImGui::Checkbox("Texture Change", &flip);
 		ImGui::End();
 
 		ImGui::Render();
