@@ -132,7 +132,7 @@ namespace ew {
 		meshData.vertices.clear();
 		meshData.indices.clear();
 		
-		//glm::vec2 uv = glm::vec2(1);
+		glm::vec2 uv = glm::vec2(1);
 
 		float topY = radius;
 		float bottomY = -radius;
