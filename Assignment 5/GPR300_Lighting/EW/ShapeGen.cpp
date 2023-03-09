@@ -9,12 +9,15 @@ namespace ew {
 		meshData.indices.clear();
 		float halfWidth = width / 2.0f;
 		float halfHeight = height / 2.0f;
+
+		glm::vec3 tangent = glm::vec3(1);
+
 		Vertex vertices[4] = {
 			//Front face
-			{glm::vec3(-halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(0)}, //BL
-			{glm::vec3(+halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(1)}, //TR
-			{glm::vec3(-halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(0, 1)} //TL
+			{glm::vec3(-halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(+halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(+halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(-halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(0, 1), glm::vec3(1)} //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[4]);
 		unsigned int indices[6] = {
@@ -30,12 +33,15 @@ namespace ew {
 		meshData.indices.clear();
 		float halfWidth = width / 2.0f;
 		float halfHeight = height / 2.0f;
+
+		glm::vec3 tangent = glm::vec3(1);
+
 		Vertex vertices[4] = {
 			//Front face
-			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 1)} //TL
+			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 1), glm::vec3(1)} //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[4]);
 		unsigned int indices[6] = {
@@ -55,44 +61,46 @@ namespace ew {
 		float halfHeight = height / 2.0f;
 		float halfDepth = depth / 2.0f;
 
+		glm::vec3 tangent = glm::vec3(1);
+
 		//VERTICES
 		//-------------
 		Vertex vertices[24] = {
 			//Front face
-			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,0,1), glm::vec2(0, 1), glm::vec3(1)}, //TL
 
 			//Back face
-			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0)}, //BL
-			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1, 0)}, //BR
-			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1)}, //TR
-			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0, 1)}, //TL
+			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,0,-1), glm::vec2(0, 1), glm::vec3(1)}, //TL
 
 			//Right face
-			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1)}, //TR
-			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(1,0,0), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(1,0,0), glm::vec2(0, 1), glm::vec3(1)}, //TL
 
 			//Left face
-			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0)}, //BL
-			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(-1,0,0), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(-1,0,0), glm::vec2(0, 1), glm::vec3(1)}, //TL
 
 			//Top face
-			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0), glm::vec2(0)}, //BL
-			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(+halfWidth, +halfHeight, +halfDepth), glm::vec3(0,1,0), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, -halfDepth), glm::vec3(0,1,0), glm::vec2(0, 1), glm::vec3(1)}, //TL
 
 			//Bottom face
-			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(0)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(1, 0)}, //BR
-			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(1)}, //TR
-			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(0, 1)}, //TL
+			{glm::vec3(-halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(0), glm::vec3(1)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, -halfDepth), glm::vec3(0,-1,0), glm::vec2(1, 0), glm::vec3(1)}, //BR
+			{glm::vec3(+halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(1), glm::vec3(1)}, //TR
+			{glm::vec3(-halfWidth, -halfHeight, +halfDepth), glm::vec3(0,-1,0), glm::vec2(0, 1), glm::vec3(1)}, //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[24]);
 
@@ -133,12 +141,13 @@ namespace ew {
 		meshData.indices.clear();
 		
 		glm::vec2 uv = glm::vec2(1);
+		glm::vec3 tangent = glm::vec3(1);
 
 		float topY = radius;
 		float bottomY = -radius;
 
 		unsigned int topIndex = 0;
-		meshData.vertices.push_back({ glm::vec3(0,topY,0),glm::vec3(0,1,0), uv});
+		meshData.vertices.push_back({ glm::vec3(0,topY,0),glm::vec3(0,1,0), uv, glm::vec3(1) });
 
 		//Angle between segments
 		float thetaStep = (2.0f * glm::pi<float>()) / (float)numSegments;
@@ -162,11 +171,11 @@ namespace ew {
 				glm::vec3 position = glm::vec3(x, y, z);
 				glm::vec3 normal = glm::normalize(glm::vec3(x, y, z));
 				uv.x = (float)j / numSegments;
-				meshData.vertices.push_back({ position, normal, glm::vec2(1)});
+				meshData.vertices.push_back({ position, normal, glm::vec2(1), glm::vec3(1) });
 			}
 		}
 
-		meshData.vertices.push_back({ glm::vec3(0,bottomY,0), glm::vec3(0,-1,0), glm::vec2(1) });
+		meshData.vertices.push_back({ glm::vec3(0,bottomY,0), glm::vec3(0,-1,0), glm::vec2(1), glm::vec3(1) });
 		unsigned int bottomIndex = (unsigned int)meshData.vertices.size() - 1;
 		unsigned int ringVertexCount = numSegments + 1;
 
@@ -221,27 +230,32 @@ namespace ew {
 		float halfHeight = height * 0.5f;
 		float thetaStep = glm::pi<float>() * 2.0f / numSegments;
 
+		glm::vec2 uv = glm::vec2(1);
+
+		glm::vec3 tangent = glm::vec3(1);
+
 		//VERTICES
 		//Top cap (facing up)
 		//Top center
-		meshData.vertices.push_back(Vertex(glm::vec3(0, halfHeight, 0), glm::vec3(0, 1, 0), glm::vec2(1)));
+		meshData.vertices.push_back(Vertex(glm::vec3(0, halfHeight, 0), glm::vec3(0, 1, 0), glm::vec2(1), glm::vec3(1)));
 		//Ring
 		for (int i = 0; i <= numSegments; i++)
 		{
 			//uv.x = cos(thetaStep)/2 + 0.5;
 			//uv.y = sin(thetaStep)/2 + 0.5;
 			//v = lerp(min,max,t)
+			//uv = glm::lerp(glm::min(uv.x, uv.y), glm::max(uv.x, uv.y));
 			//t = inverse lerp(min,max,v)
 			glm::vec3 pos = glm::vec3(
 				cos(i * thetaStep) * radius,
 				halfHeight,
 				sin(i * thetaStep) * radius
 			);
-			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, 1, 0), glm::vec2(1)));
+			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, 1, 0), glm::vec2(1), glm::vec3(1)));
 		}
 
 		//Bottom cap (facing down)
-		meshData.vertices.push_back(Vertex(glm::vec3(0, -halfHeight, 0), glm::vec3(0, -1, 0), glm::vec2(1)));
+		meshData.vertices.push_back(Vertex(glm::vec3(0, -halfHeight, 0), glm::vec3(0, -1, 0), glm::vec2(1), glm::vec3(1)));
 		unsigned int bottomCenterIndex = (unsigned int)meshData.vertices.size() - 1;
 		for (int i = 0; i <= numSegments; i++)
 		{
@@ -252,7 +266,7 @@ namespace ew {
 				-halfHeight,
 				sin(i * thetaStep) * radius
 			);
-			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, -1, 0), glm::vec2(1)));
+			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, -1, 0), glm::vec2(1), glm::vec3(1)));
 		}
 
 		//Sides (facing out)
@@ -262,14 +276,14 @@ namespace ew {
 		{
 			glm::vec3 pos = meshData.vertices[i + 1].position;
 			glm::vec3 normal = glm::normalize((pos - meshData.vertices[0].position));
-			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1)));
+			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1), glm::vec3(1)));
 		}
 		//Side bottom ring
 		for (int i = 0; i <= numSegments; i++)
 		{
 			glm::vec3 pos = meshData.vertices[bottomCenterIndex + i + 1].position;
 			glm::vec3 normal = glm::normalize((pos - meshData.vertices[bottomCenterIndex].position));
-			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1)));
+			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1), glm::vec3(1)));
 		}
 
 		//INDICES

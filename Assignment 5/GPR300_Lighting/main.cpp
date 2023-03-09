@@ -150,17 +150,6 @@ int main() {
 
 	GLuint texture = createTexture(woodFloorFile);
 
-	/*if (flip)
-	{
-		texture = createTexture(woodFloorFile);
-	}
-
-	else
-	{
-		texture = createTexture(bricksFile);
-	}*/
-	
-
 	
 
 	ew::MeshData cubeMeshData;
@@ -215,6 +204,10 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
+	float sliderF = 2.0f;
+	int sliderI = 5;
+	float intensity = 1.0f;
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -263,8 +256,7 @@ int main() {
 		unlitShader.setVec3("_Color", lightColor);
 		/*sphereMesh.draw();*/
 
-		float sliderF = 2.0f;
-		int sliderI = 5;
+		
 
 		//Draw UI
 		ImGui::Begin("Settings");
@@ -273,7 +265,7 @@ int main() {
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
 		ImGui::SliderFloat2("Texture Scroll Speed", &sliderF, 0, 10);
 		ImGui::SliderInt2("Texture Tiling", &sliderI, 0, 10);
-		ImGui::SliderFloat("Normal Map Intensity", &sliderF, 0, 1);
+		ImGui::SliderFloat("Normal Map Intensity", &intensity, 0, 1);
 		//ImGui::Checkbox("Texture Change", &flip);
 		ImGui::End();
 
