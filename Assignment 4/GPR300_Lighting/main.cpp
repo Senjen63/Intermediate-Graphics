@@ -271,8 +271,8 @@ int main() {
 
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
 		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
-		ImGui::DragFloat2("Texture Scroll Speed", &sliderF);
-		ImGui::DragInt2("Texture Tiling", &sliderI);
+		ImGui::SliderFloat2("Texture Scroll Speed", &sliderF, 0, 10);
+		ImGui::SliderInt2("Texture Tiling", &sliderI, 0, 5);
 		//ImGui::Checkbox("Texture Change", &flip);
 		ImGui::End();
 
