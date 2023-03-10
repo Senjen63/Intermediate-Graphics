@@ -17,7 +17,7 @@ void main(){
     vec3 T = vTangent;
     vec3 B;
     vec3 N = vNormal;
-
+    
     B = cross(N, T);
 
 
@@ -32,6 +32,11 @@ void main(){
     TBN[2][0] = N.x;
     TBN[2][1] = N.y;
     TBN[2][2] = N.z;
+
+    mat3 normalMatrix = transpose(inverse(mat3(_Model)));
+
+    TBN = normalMatrix * TBN ;
+
     
     gl_Position = _Projection * _View * _Model * vec4(vPos,1);
 }
