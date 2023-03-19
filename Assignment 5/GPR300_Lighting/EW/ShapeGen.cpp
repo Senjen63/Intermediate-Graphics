@@ -14,10 +14,10 @@ namespace ew {
 
 		Vertex vertices[4] = {
 			//Front face
-			{glm::vec3(-halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(0), glm::vec3(1)}, //BL
-			{glm::vec3(+halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(1, 0), glm::vec3(1)}, //BR
-			{glm::vec3(+halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(1), glm::vec3(1)}, //TR
-			{glm::vec3(-halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(0, 1), glm::vec3(1)} //TL
+			{glm::vec3(-halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(0), glm::vec3(0, 0, 1)}, //BL
+			{glm::vec3(+halfWidth, 0, -halfHeight), glm::vec3(0,1,0), glm::vec2(1, 0), glm::vec3(1, 0, 0)}, //BR
+			{glm::vec3(+halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(1), glm::vec3(1, 0 , 0)}, //TR
+			{glm::vec3(-halfWidth, 0, +halfHeight), glm::vec3(0,1,0), glm::vec2(0, 1), glm::vec3(0, 0, 1)} //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[4]);
 		unsigned int indices[6] = {
@@ -38,10 +38,10 @@ namespace ew {
 
 		Vertex vertices[4] = {
 			//Front face
-			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0), glm::vec3(1)}, //BL
-			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 0), glm::vec3(1)}, //BR
-			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1), glm::vec3(1)}, //TR
-			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 1), glm::vec3(1)} //TL
+			{glm::vec3(-halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0), glm::vec3(0, 0, 1)}, //BL
+			{glm::vec3(+halfWidth, -halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1, 0), glm::vec3(1, 0, 0)}, //BR
+			{glm::vec3(+halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(1), glm::vec3(1, 0, 0)}, //TR
+			{glm::vec3(-halfWidth, +halfHeight, 0), glm::vec3(0,0,1), glm::vec2(0, 1), glm::vec3(0, 0, 1)} //TL
 		};
 		meshData.vertices.assign(&vertices[0], &vertices[4]);
 		unsigned int indices[6] = {
@@ -141,13 +141,13 @@ namespace ew {
 		meshData.indices.clear();
 		
 		glm::vec2 uv = glm::vec2(1);
-		glm::vec3 tangent = glm::vec3(1);
+		glm::vec3 tangent = glm::vec3(0, 0, 1);
 
 		float topY = radius;
 		float bottomY = -radius;
 
 		unsigned int topIndex = 0;
-		meshData.vertices.push_back({ glm::vec3(0,topY,0),glm::vec3(0,1,0), uv, glm::vec3(1) });
+		meshData.vertices.push_back({ glm::vec3(0,topY,0),glm::vec3(0,1,0), uv, tangent });
 
 		//Angle between segments
 		float thetaStep = (2.0f * glm::pi<float>()) / (float)numSegments;
@@ -158,6 +158,7 @@ namespace ew {
 			float phi = phiStep * i;
 
 			uv.y = (float)i / numSegments;
+			tangent.z = (float)i / numSegments;
 
 			//Create row
 			for (int j = 0; j <= numSegments; ++j)
@@ -171,6 +172,7 @@ namespace ew {
 				glm::vec3 position = glm::vec3(x, y, z);
 				glm::vec3 normal = glm::normalize(glm::vec3(x, y, z));
 				uv.x = (float)j / numSegments;
+				tangent.x = (float)j / numSegments;
 				meshData.vertices.push_back({ position, normal, glm::vec2(1), glm::vec3(1) });
 			}
 		}
