@@ -195,8 +195,53 @@ int main() {
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 
 	GLuint texture = createTexture(woodFloorFile);
+	/************************************************************************************/
+	//unsigned int frameBuffer;
+	//glGenFramebuffers(1, &frameBuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glDeleteFramebuffers(1, &frameBuffer);
 
-	
+	//unsigned int colorBufferTexture;
+	//glGenTextures(1, &colorBufferTexture);
+	//glBindTexture(GL_TEXTURE_2D, colorBufferTexture);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBuffer, 0);
+
+	//unsigned int rboDepth = {};
+	//glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
+	//GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	////viewport
+	//glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	//glViewport(0, 0, 512, 512);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	////Clearing Buffers
+	//glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	////drawScene();
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	////drawFullscreenQuad
+
+	////Specifying Draw Buffers
+	//const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	//glDrawBuffers(2, draw_buffers);
+
+
+
+	/***************************************************************************************/
 
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
@@ -371,15 +416,15 @@ int main() {
 		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
 		ImGui::End();
 
-		//Draw UI
-		ImGui::Begin("Settings");
+		char CC[5];
+		char c;
+		int i;
 
-		ImGui::ColorEdit3("Light Color", &lightColor.r);
-		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
-		ImGui::SliderFloat2("Texture Scroll Speed", &sliderF, 0, 10);
-		ImGui::SliderInt2("Texture Tiling", &sliderI, 0, 10);
-		ImGui::SliderFloat("Normal Map Intensity", &intensity, 0, 1);
-		//ImGui::Checkbox("Texture Change", &flip);
+		//Draw UI
+		ImGui::Begin("Post Process");
+
+		ImGui::Combo(&c, &i, &CC[3], 5);
+
 		ImGui::End();
 
 		ImGui::Render();
