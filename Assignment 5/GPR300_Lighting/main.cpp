@@ -336,50 +336,22 @@ int main() {
 
 		lightTransform.position = pointLights.position;
 
-		ImGui::Begin("Material");
-		ImGui::ColorEdit3("Material Color", &material.color.r);
-		ImGui::SliderFloat("Material Ambient K", &material.ambientK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Diffuse K", &material.diffuseK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Specular K", &material.specularK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Shininess", &material.shininess, 2.0f, 512.0f);
-		ImGui::End();
+		
+		
 
-		ImGui::Begin("Directional Light");
-		ImGui::DragFloat3("Directional Light Direction", &directionalLight.direction.x);
-		ImGui::SliderFloat("Directional Light Intensity", &directionalLight.intensity, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Directional Light Color", &directionalLight.color.r);
-		ImGui::End();
-
-		ImGui::Begin("Point Lights");
-		ImGui::SliderFloat("Point Light Intensity", &pointLights.intensity, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Linear", &pointLights.linearAttenuation, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Quadratic", &pointLights.quadractic, 0.0f, 1.0f);
-		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
-		ImGui::ColorEdit3("Point Light Color", &pointLights.color.r);
-
-		ImGui::End();
-
-		ImGui::Begin("Spot Light");
-		ImGui::DragFloat3("Spot Light Position", &spotLight.position.x);
-		ImGui::DragFloat3("Spot Light Direction", &spotLight.direction.x);
-		ImGui::SliderFloat("Spot Light Intensity", &spotLight.intensity, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Spot Light Color", &spotLight.color.r);
-		ImGui::SliderFloat("Spot Light Inner Angle", &spotLight.minAngle, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Outer Angle", &spotLight.maxAngle, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Angle Falloff", &spotLight.angleFallOff, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Linear", &spotLight.linearAttenuation, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
-		ImGui::End();
 
 		//Draw UI
 		ImGui::Begin("Settings");
 
-		ImGui::ColorEdit3("Light Color", &lightColor.r);
-		ImGui::DragFloat3("Light Position", &lightTransform.position.x);
+		ImGui::ColorEdit3("Color", &material.color.r);
+		ImGui::SliderFloat("AmbientK", &material.ambientK, 0.0f, 1.0f);
+		ImGui::SliderFloat("DiffuseK", &material.diffuseK, 0.0f, 1.0f);
+		ImGui::SliderFloat("SpecularK", &material.specularK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Shininess", &material.shininess, 2.0f, 512.0f);
+		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
 		ImGui::SliderFloat2("Texture Scroll Speed", &sliderF, 0, 10);
 		ImGui::SliderInt2("Texture Tiling", &sliderI, 0, 10);
 		ImGui::SliderFloat("Normal Map Intensity", &intensity, 0, 1);
-		//ImGui::Checkbox("Texture Change", &flip);
 		ImGui::End();
 
 		ImGui::Render();

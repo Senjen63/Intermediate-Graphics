@@ -159,6 +159,7 @@ namespace ew {
 
 			uv.y = (float)i / numSegments;
 			tangent.z = (float)i / numSegments;
+			glm::cross(tangent, tangent)
 
 			//Create row
 			for (int j = 0; j <= numSegments; ++j)
