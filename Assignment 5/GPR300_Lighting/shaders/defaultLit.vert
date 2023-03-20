@@ -33,6 +33,9 @@ void main(){
     TBN[2][1] = N.y;
     TBN[2][2] = N.z;
 
+    
+    
+
     mat3 normalMatrix = transpose(inverse(mat3(_Model)));
 
     TBN = normalMatrix * TBN ;
