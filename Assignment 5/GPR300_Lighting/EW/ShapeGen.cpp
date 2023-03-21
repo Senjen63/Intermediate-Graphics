@@ -157,9 +157,7 @@ namespace ew {
 		{
 			float phi = phiStep * i;
 
-			uv.y = (float)i / numSegments;
-			tangent.z = (float)i / numSegments;
-			glm::cross(tangent, tangent)
+			uv.y = (float)i / numSegments;			
 
 			//Create row
 			for (int j = 0; j <= numSegments; ++j)
@@ -173,12 +171,14 @@ namespace ew {
 				glm::vec3 position = glm::vec3(x, y, z);
 				glm::vec3 normal = glm::normalize(glm::vec3(x, y, z));
 				uv.x = (float)j / numSegments;
-				tangent.x = (float)j / numSegments;
-				meshData.vertices.push_back({ position, normal, glm::vec2(1), glm::vec3(1) });
+				tangent = glm::cross(normal, glm::vec3(0, 1, 0));
+				tangent = glm::normalize(tangent);
+				
+				meshData.vertices.push_back({ position, normal, uv, tangent });
 			}
 		}
 
-		meshData.vertices.push_back({ glm::vec3(0,bottomY,0), glm::vec3(0,-1,0), glm::vec2(1), glm::vec3(1) });
+		meshData.vertices.push_back({ glm::vec3(0,bottomY,0), glm::vec3(0,-1,0), uv, tangent });
 		unsigned int bottomIndex = (unsigned int)meshData.vertices.size() - 1;
 		unsigned int ringVertexCount = numSegments + 1;
 
@@ -233,28 +233,33 @@ namespace ew {
 		float halfHeight = height * 0.5f;
 		float thetaStep = glm::pi<float>() * 2.0f / numSegments;
 
-		glm::vec2 uv = glm::vec2(1);
+		glm::vec2 uv = glm::vec2(0);
 
-		glm::vec3 tangent = glm::vec3(1);
+		glm::vec3 tangent = glm::vec3(0, 1, 0);
 
 		//VERTICES
 		//Top cap (facing up)
 		//Top center
-		meshData.vertices.push_back(Vertex(glm::vec3(0, halfHeight, 0), glm::vec3(0, 1, 0), glm::vec2(1), glm::vec3(1)));
+		meshData.vertices.push_back(Vertex(glm::vec3(0, halfHeight, 0), glm::vec3(0, 1, 0), uv, tangent));
 		//Ring
 		for (int i = 0; i <= numSegments; i++)
 		{
-			//uv.x = cos(thetaStep)/2 + 0.5;
-			//uv.y = sin(thetaStep)/2 + 0.5;
+			uv.x = cos(thetaStep)/2 + 0.5;
+			uv.y = sin(thetaStep)/2 + 0.5;
+			//uv.y = (float)i / numSegments;
+
 			//v = lerp(min,max,t)
-			//uv = glm::lerp(glm::min(uv.x, uv.y), glm::max(uv.x, uv.y));
+			//uv = glm::lerp(glm::min(uv.x, uv.y), glm::max(uv.x, uv.y), Vertex);
 			//t = inverse lerp(min,max,v)
 			glm::vec3 pos = glm::vec3(
 				cos(i * thetaStep) * radius,
 				halfHeight,
 				sin(i * thetaStep) * radius
 			);
-			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, 1, 0), glm::vec2(1), glm::vec3(1)));
+
+			tangent = glm::cross(pos, glm::vec3(0, 1, 0));
+			tangent = glm::normalize(tangent);
+			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, 1, 0), uv, tangent));
 		}
 
 		//Bottom cap (facing down)
@@ -269,7 +274,7 @@ namespace ew {
 				-halfHeight,
 				sin(i * thetaStep) * radius
 			);
-			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, -1, 0), glm::vec2(1), glm::vec3(1)));
+			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, -1, 0), uv, tangent));
 		}
 
 		//Sides (facing out)
@@ -279,14 +284,18 @@ namespace ew {
 		{
 			glm::vec3 pos = meshData.vertices[i + 1].position;
 			glm::vec3 normal = glm::normalize((pos - meshData.vertices[0].position));
-			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1), glm::vec3(1)));
+			tangent = glm::cross(normal, glm::vec3(0, 1, 0));
+			tangent = glm::normalize(tangent);
+			meshData.vertices.push_back(Vertex(pos, normal, uv, tangent));
 		}
 		//Side bottom ring
 		for (int i = 0; i <= numSegments; i++)
 		{
 			glm::vec3 pos = meshData.vertices[bottomCenterIndex + i + 1].position;
 			glm::vec3 normal = glm::normalize((pos - meshData.vertices[bottomCenterIndex].position));
-			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1), glm::vec3(1)));
+			tangent = glm::cross(normal, glm::vec3(0, 1, 0));
+			tangent = glm::normalize(tangent);
+			meshData.vertices.push_back(Vertex(pos, normal, uv, tangent));
 		}
 
 		//INDICES

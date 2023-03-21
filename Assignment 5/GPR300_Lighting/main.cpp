@@ -194,9 +194,7 @@ int main() {
 	const char* woodFloorFile = "Texture/WoodFloor051_1K_Color.png";
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 
-	GLuint texture = createTexture(woodFloorFile);
-
-	
+	GLuint texture = createTexture(woodFloorFile);	
 
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
@@ -276,26 +274,6 @@ int main() {
 		litShader.setInt("_Brick", texture);
 
 		litShader.setVec3("_PointLights.position", pointLights.position);
-		litShader.setFloat("_PointLights.intensity", pointLights.intensity);
-		litShader.setVec3("_PointLights.color", pointLights.color);
-		litShader.setFloat("_PointLights.linearAttenuation", pointLights.linearAttenuation);
-		litShader.setFloat("_PointLights.quadractic", pointLights.quadractic);
-
-		//Directional Light Uniforms
-		litShader.setVec3("_DirectionalLight.direction", directionalLight.direction);
-		litShader.setFloat("_DirectionalLight.intensity", directionalLight.intensity);
-		litShader.setVec3("_DirectionalLight.color", directionalLight.color);
-
-		//Spot Light Uniforms
-		litShader.setVec3("_SpotLight.position", spotLight.position);
-		litShader.setFloat("_SpotLight.intensity", spotLight.intensity);
-		litShader.setVec3("_SpotLight.color", spotLight.color);
-		litShader.setVec3("_SpotLight.direction", spotLight.direction);
-		litShader.setFloat("_SpotLight.linearAttenuation", spotLight.linearAttenuation);
-		litShader.setFloat("_SpotLight.quadractic", spotLight.quadractic);
-		litShader.setFloat("_SpotLight.minAngle", spotLight.minAngle);
-		litShader.setFloat("_SpotLight.maxAngle", spotLight.maxAngle);
-		litShader.setFloat("_SpotLight.angleFallOff", spotLight.angleFallOff);
 
 		//Material Uniforms
 		litShader.setVec3("_Material.color", material.color);
@@ -332,13 +310,6 @@ int main() {
 		/*sphereMesh.draw();*/
 
 		lightColor = pointLights.color;
-
-
-		lightTransform.position = pointLights.position;
-
-		
-		
-
 
 		//Draw UI
 		ImGui::Begin("Settings");
