@@ -204,6 +204,7 @@ int main() {
 	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
+	
 
 
 	ew::Mesh cubeMesh(&cubeMeshData);
@@ -248,9 +249,9 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	float sliderF = 2.0f;
-	int sliderI = 5;
-	float intensity = 1.0f;
+	//float sliderF = 2.0f;
+	//int sliderI = 5;
+	float textureIntensity = 1.0f;
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -269,11 +270,32 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		litShader.setVec3("_LightPos", lightTransform.position);
+		//litShader.setVec3("_LightPos", lightTransform.position);
 		litShader.setInt("_WoodFloor", texture);
 		litShader.setInt("_Brick", texture);
 
+		//Point Light Uniforms
 		litShader.setVec3("_PointLights.position", pointLights.position);
+		litShader.setFloat("_PointLights.intensity", pointLights.intensity);
+		litShader.setVec3("_PointLights.color", pointLights.color);
+		litShader.setFloat("_PointLights.linearAttenuation", pointLights.linearAttenuation);
+		litShader.setFloat("_PointLights.quadractic", pointLights.quadractic);
+
+		//Directional Light Uniforms
+		litShader.setVec3("_DirectionalLight.direction", directionalLight.direction);
+		litShader.setFloat("_DirectionalLight.intensity", directionalLight.intensity);
+		litShader.setVec3("_DirectionalLight.color", directionalLight.color);
+
+		//Spot Light Uniforms
+		litShader.setVec3("_SpotLight.position", spotLight.position);
+		litShader.setFloat("_SpotLight.intensity", spotLight.intensity);
+		litShader.setVec3("_SpotLight.color", spotLight.color);
+		litShader.setVec3("_SpotLight.direction", spotLight.direction);
+		litShader.setFloat("_SpotLight.linearAttenuation", spotLight.linearAttenuation);
+		litShader.setFloat("_SpotLight.quadractic", spotLight.quadractic);
+		litShader.setFloat("_SpotLight.minAngle", spotLight.minAngle);
+		litShader.setFloat("_SpotLight.maxAngle", spotLight.maxAngle);
+		litShader.setFloat("_SpotLight.angleFallOff", spotLight.angleFallOff);
 
 		//Material Uniforms
 		litShader.setVec3("_Material.color", material.color);
@@ -298,8 +320,8 @@ int main() {
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
-		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		quadMesh.draw();
+		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		//quadMesh.draw();
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -307,9 +329,12 @@ int main() {
 		unlitShader.setMat4("_View", camera.getViewMatrix());
 		unlitShader.setMat4("_Model", lightTransform.getModelMatrix());
 		unlitShader.setVec3("_Color", lightColor);
-		/*sphereMesh.draw();*/
+		sphereMesh.draw();
 
 		lightColor = pointLights.color;
+		lightTransform.position = pointLights.position;
+
+		litShader.setFloat("_textureIntensity", textureIntensity);
 
 		//Draw UI
 		ImGui::Begin("Settings");
@@ -320,9 +345,7 @@ int main() {
 		ImGui::SliderFloat("SpecularK", &material.specularK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.shininess, 2.0f, 512.0f);
 		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
-		ImGui::SliderFloat2("Texture Scroll Speed", &sliderF, 0, 10);
-		ImGui::SliderInt2("Texture Tiling", &sliderI, 0, 10);
-		ImGui::SliderFloat("Normal Map Intensity", &intensity, 0, 1);
+		ImGui::SliderFloat("Normal Map Intensity", &textureIntensity, 0, 1);
 		ImGui::End();
 
 		ImGui::Render();

@@ -15,8 +15,10 @@ out struct Vertex
 	mat3 TBN;
 }  v_out;
 
-void main(){    
-    vec2 UV = v_out.UV;
+void main(){  
+    
+    //vec2 UV = v_out.UV;
+    v_out.UV = vUV;
     vec3 T = vTangent;
     vec3 B;
     vec3 N = vNormal;    
@@ -37,7 +39,8 @@ void main(){
 
     mat3 normalMatrix = transpose(inverse(mat3(_Model)));
 
-    v_out.TBN = normalMatrix * v_out.TBN ;
+    v_out.TBN = normalMatrix * v_out.TBN;
+    
 
     v_out.WorldPosition = vec3(_Model * vec4(vPos,1));
     gl_Position = _Projection * _View * _Model * vec4(vPos,1);

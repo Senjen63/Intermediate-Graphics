@@ -47,8 +47,6 @@ struct SpotLight
 	//linear and spotlight
 };
 
-
-
 uniform sampler2D _WoodFloor;
 uniform sampler2D _Brick;
 uniform sampler2D _NormalMap;
@@ -58,11 +56,10 @@ uniform int _NumberOfLight;
 uniform DirectionalLight _DirectionalLight;
 uniform PointLights _PointLights;
 uniform SpotLight _SpotLight;
-
+uniform float _textureIntensity;
 
 float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
 {
-
 	float Distance = length(v_out.WorldPosition - position);
 	float I = (1 / (1 + linearAttenuation * Distance + quadraticAttenuation * pow(Distance, 2)));
 
@@ -70,12 +67,7 @@ float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 positi
 }
 
 float AngularAttenuation(SpotLight spotLight) // point light and spot light
-{
-
-	
-	//FragColor = vec4(0);
-
-	//float w = 2;
+{	
 	float w = spotLight.angleFallOff;
 
 	vec3 D = normalize(v_out.WorldPosition - spotLight.position);
@@ -92,7 +84,6 @@ float AngularAttenuation(SpotLight spotLight) // point light and spot light
 
 vec3 CalculateAmbient()
 {
-
 	float ambientK = _Material.ambientK;
 	vec3 ambientI = _Material.color;
 
@@ -103,7 +94,6 @@ vec3 CalculateAmbient()
 
 vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor, vec3 normal)
 {
-	//vec3 diffuse;
 	float diffuseK = _Material.diffuseK;
 	
 	vec3 diffuseI = lightColor;
@@ -115,8 +105,6 @@ vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor, vec3 normal)
 
 vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float intensity, vec3 normal)
 {
-	//vec3 specularN;
-
 	float specularK = _Material.specularK;
 	vec3 specularN = normal;
 	vec3 specularH;
@@ -141,7 +129,6 @@ vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float in
 
 vec3 CalculatePointLight(PointLights pointLight, vec3 normal)
 {
-
 	vec3 phongShade;
 
 	vec3 diffuseDirection = pointLight.position - v_out.WorldPosition;
@@ -158,7 +145,6 @@ vec3 CalculatePointLight(PointLights pointLight, vec3 normal)
 
 vec3 CalculateDirectionalLights(DirectionalLight directionalLight, vec3 normal)
 {
-
 	vec3 phongShade;
 
 	vec3 DirectionTowardsLight = -directionalLight.direction;
@@ -172,7 +158,6 @@ vec3 CalculateDirectionalLights(DirectionalLight directionalLight, vec3 normal)
 
 vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal)
 {
-
 	vec3 phongShade;
 
 	vec3 diffuseDirection = spotLight.position - v_out.WorldPosition;
@@ -189,15 +174,16 @@ vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal)
 
 void main(){ 
 	vec3 lightColor  = vec3(0);
-	vec3 normal = texture(_NormalMap,UV).rgb;
+	vec3 normal = texture(_NormalMap,v_out.UV).rgb;
 	normal = normal * 2.0 - 1.0;
     normal = normalize(normal);
 
 	lightColor += CalculatePointLight(_PointLights, normal);
 	lightColor += CalculateDirectionalLights(_DirectionalLight, normal) + CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
-    vec4 color = texture(_WoodFloor, UV);
+    vec4 color = texture(_WoodFloor, v_out.UV);
+	color.r = color.r * _textureIntensity;
     
-    
-    
-    FragColor = vec4(normal.x, normal.y, normal.z, 1.0f) * vec4(_Material.color * lightColor, 1);
+	//FragColor = vec4(color.x, color.y, color.z, 1.0f);
+	//FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color, 1);
+    FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1);
 }

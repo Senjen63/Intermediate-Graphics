@@ -240,7 +240,7 @@ namespace ew {
 		//VERTICES
 		//Top cap (facing up)
 		//Top center
-		meshData.vertices.push_back(Vertex(glm::vec3(0, halfHeight, 0), glm::vec3(0, 1, 0), uv, tangent));
+		meshData.vertices.push_back(Vertex(glm::vec3(0, halfHeight, 0), glm::vec3(0, 1, 0), glm::vec2(1), glm::vec3(1)));
 		//Ring
 		for (int i = 0; i <= numSegments; i++)
 		{
@@ -259,7 +259,7 @@ namespace ew {
 
 			tangent = glm::cross(pos, glm::vec3(0, 1, 0));
 			tangent = glm::normalize(tangent);
-			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, 1, 0), uv, tangent));
+			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, 1, 0), glm::vec2(1), glm::vec3(1)));
 		}
 
 		//Bottom cap (facing down)
@@ -274,7 +274,7 @@ namespace ew {
 				-halfHeight,
 				sin(i * thetaStep) * radius
 			);
-			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, -1, 0), uv, tangent));
+			meshData.vertices.push_back(Vertex(pos, glm::vec3(0, -1, 0), glm::vec2(1), glm::vec3(1)));
 		}
 
 		//Sides (facing out)
@@ -286,7 +286,7 @@ namespace ew {
 			glm::vec3 normal = glm::normalize((pos - meshData.vertices[0].position));
 			tangent = glm::cross(normal, glm::vec3(0, 1, 0));
 			tangent = glm::normalize(tangent);
-			meshData.vertices.push_back(Vertex(pos, normal, uv, tangent));
+			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1), glm::vec3(1)));
 		}
 		//Side bottom ring
 		for (int i = 0; i <= numSegments; i++)
@@ -295,7 +295,7 @@ namespace ew {
 			glm::vec3 normal = glm::normalize((pos - meshData.vertices[bottomCenterIndex].position));
 			tangent = glm::cross(normal, glm::vec3(0, 1, 0));
 			tangent = glm::normalize(tangent);
-			meshData.vertices.push_back(Vertex(pos, normal, uv, tangent));
+			meshData.vertices.push_back(Vertex(pos, normal, glm::vec2(1), glm::vec3(1)));
 		}
 
 		//INDICES
