@@ -1,9 +1,13 @@
 #version 450                          
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 FragColor2;
 
-
-in vec2 UV;
-in mat3 TBN;
+in struct Vertex
+{
+	vec3 WorldPosition;	
+	vec2 UV;
+	mat3 TBN;
+}v_out;
 
 struct Material
 {
@@ -53,10 +57,10 @@ uniform int _NumberOfLight;
 uniform DirectionalLight _DirectionalLight;
 uniform PointLights _PointLights;
 uniform SpotLight _SpotLight;
+uniform float _textureIntensity;
 
 float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
 {
-
 	float Distance = length(v_out.WorldPosition - position);
 	float I = (1 / (1 + linearAttenuation * Distance + quadraticAttenuation * pow(Distance, 2)));
 
@@ -64,12 +68,7 @@ float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 positi
 }
 
 float AngularAttenuation(SpotLight spotLight) // point light and spot light
-{
-
-	
-	//FragColor = vec4(0);
-
-	//float w = 2;
+{	
 	float w = spotLight.angleFallOff;
 
 	vec3 D = normalize(v_out.WorldPosition - spotLight.position);
@@ -86,7 +85,6 @@ float AngularAttenuation(SpotLight spotLight) // point light and spot light
 
 vec3 CalculateAmbient()
 {
-
 	float ambientK = _Material.ambientK;
 	vec3 ambientI = _Material.color;
 
@@ -95,23 +93,22 @@ vec3 CalculateAmbient()
 	return ambient;
 }
 
-vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor)
+vec3 CalculateDiffuse(vec3 lightDirection, vec3 lightColor, vec3 normal)
 {
-
 	float diffuseK = _Material.diffuseK;
 	
 	vec3 diffuseI = lightColor;
 
-	vec3 diffuse = diffuseK * max(dot(normalize(lightDirection), normalize(v_out.WorldNormal)), 0) * diffuseI;
+	vec3 diffuse = diffuseK * max(dot(normalize(lightDirection), normalize(normal)), 0) * diffuseI;
 
 	return diffuse;
 }
 
-vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float intensity)
+vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float intensity, vec3 normal)
 {
 
 	float specularK = _Material.specularK;
-	vec3 specularN = v_out.WorldNormal;
+	vec3 specularN = normal;
 	vec3 specularH;
 	vec3 specularV;
 	vec3 specularL;
@@ -132,7 +129,7 @@ vec3 CalculateBlinnPhongSpecular(vec3 directionTowardLight, vec3 color, float in
 	return specular;
 }
 
-vec3 CalculatePointLight(PointLights pointLight)
+vec3 CalculatePointLight(PointLights pointLight, vec3 normal)
 {
 
 	vec3 phongShade;
@@ -141,38 +138,36 @@ vec3 CalculatePointLight(PointLights pointLight)
 
 	vec3 ambientColor = pointLight.color * _Material.ambientK;
 
-	phongShade = ambientColor + CalculateDiffuse(diffuseDirection, pointLight.color) 
-	+ CalculateBlinnPhongSpecular(diffuseDirection, pointLight.color, pointLight.intensity);
+	phongShade = ambientColor + CalculateDiffuse(diffuseDirection, pointLight.color, normal) 
+	+ CalculateBlinnPhongSpecular(diffuseDirection, pointLight.color, pointLight.intensity, normal);
 
 	phongShade *= GLFallOff(pointLight.linearAttenuation, pointLight.quadractic, pointLight.position);
 	
 	return phongShade ;
 }
 
-vec3 CalculateDirectionalLights(DirectionalLight directionalLight)
+vec3 CalculateDirectionalLights(DirectionalLight directionalLight, vec3 normal)
 {
-
 	vec3 phongShade;
 
 	vec3 DirectionTowardsLight = -directionalLight.direction;
 	vec3 ambientColor = directionalLight.color * _Material.ambientK;
 
-	phongShade = ambientColor + CalculateDiffuse(DirectionTowardsLight, directionalLight.color) 
-	+ CalculateBlinnPhongSpecular(DirectionTowardsLight, directionalLight.color, directionalLight.intensity);
+	phongShade = ambientColor + CalculateDiffuse(DirectionTowardsLight, directionalLight.color, normal) 
+	+ CalculateBlinnPhongSpecular(DirectionTowardsLight, directionalLight.color, directionalLight.intensity, normal);
 	
 	return phongShade;
 }
 
-vec3 CalculateSpotLight(SpotLight spotLight)
+vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal)
 {
-
 	vec3 phongShade;
 
 	vec3 diffuseDirection = spotLight.position - v_out.WorldPosition;
 	vec3 ambientColor = spotLight.color * _Material.ambientK;
 
-	phongShade = ambientColor + CalculateDiffuse(diffuseDirection, spotLight.color) 
-	+ CalculateBlinnPhongSpecular(diffuseDirection, spotLight.color, spotLight.intensity);
+	phongShade = ambientColor + CalculateDiffuse(diffuseDirection, spotLight.color, normal) 
+	+ CalculateBlinnPhongSpecular(diffuseDirection, spotLight.color, spotLight.intensity, normal);
 
 	phongShade *= AngularAttenuation(spotLight) * GLFallOff(spotLight.linearAttenuation, spotLight.quadractic, spotLight.position);
 	
@@ -182,12 +177,14 @@ vec3 CalculateSpotLight(SpotLight spotLight)
 
 void main(){ 
 	vec3 lightColor  = vec3(0);
-	lightColor += CalculatePointLight(_PointLights);
-	lightColor += CalculateDirectionalLights(_DirectionalLight) + CalculateSpotLight(_SpotLight) * AngularAttenuation(_SpotLight);
-    vec4 color = texture(_WoodFloor, UV);
-    vec3 normal = texture(_NormalMap,UV).rgb;
+	vec4 color = texture(_WoodFloor, v_out.UV);
+    vec3 normal = texture(_NormalMap,v_out.UV).rgb;
     normal = normal * 2.0 - 1.0;
-    normal = TBN * normal;
+    normal = normalize(normal);
+
+	lightColor += CalculatePointLight(_PointLights, normal);
+	lightColor += CalculateDirectionalLights(_DirectionalLight, normal) + CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
     
-    FragColor = vec4(normal.x, normal.y, normal.z, 1.0f) * vec4(_Material.color * lightColor, 1);
+    
+    FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1);
 }

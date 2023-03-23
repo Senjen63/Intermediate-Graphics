@@ -172,12 +172,14 @@ namespace ew {
 				glm::vec3 position = glm::vec3(x, y, z);
 				glm::vec3 normal = glm::normalize(glm::vec3(x, y, z));
 				uv.x = (float)j / numSegments;
-				tangent.x = (float)j / numSegments;
-				meshData.vertices.push_back({ position, normal, glm::vec2(1), glm::vec3(1) });
+				tangent = glm::cross(normal, glm::vec3(0, 1, 0));
+				tangent = glm::normalize(tangent);
+
+				meshData.vertices.push_back({ position, normal, uv, tangent });
 			}
 		}
 
-		meshData.vertices.push_back({ glm::vec3(0,bottomY,0), glm::vec3(0,-1,0), glm::vec2(1), glm::vec3(1) });
+		meshData.vertices.push_back({ glm::vec3(0,bottomY,0), glm::vec3(0,-1,0), uv, tangent });
 		unsigned int bottomIndex = (unsigned int)meshData.vertices.size() - 1;
 		unsigned int ringVertexCount = numSegments + 1;
 
