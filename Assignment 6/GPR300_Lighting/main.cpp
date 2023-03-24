@@ -142,7 +142,7 @@ GLuint createTexture(const char* filePath)
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	/*glActiveTexture(GL_TEXTURE1);
@@ -188,6 +188,8 @@ int main() {
 	//Used to draw shapes. This is the shader you will be completing.
 	Shader litShader("shaders/defaultLit.vert", "shaders/defaultLit.frag");
 
+	Shader PostProcessShader("shaders/PostProcess.vert", "shaders/PostProcess.frag");
+
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
@@ -214,7 +216,7 @@ int main() {
 	
 
 	ew::MeshData quadMeshData;
-	ew::createQuad(1.0f, 1.0f, quadMeshData);
+	ew::createQuad(2, 2, quadMeshData);
 	ew::Mesh quadMesh(&quadMeshData);
 
 	//Enable back face culling
@@ -249,21 +251,26 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
+	bool isOn;
 	/************************************************************************************/
+
+	if (isOn)
+	{
+
+	}
 	unsigned int frameBufferObject;
 	glGenFramebuffers(1, &frameBufferObject);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDeleteFramebuffers(1, &frameBufferObject);
+	
 
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
+	unsigned int colorBuffer;
+	glGenTextures(1, &colorBuffer);
+	glBindTexture(GL_TEXTURE_2D, colorBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture2, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
 
 	unsigned int renderBufferObject;
 	glGenRenderbuffers(1, &renderBufferObject);
@@ -273,20 +280,13 @@ int main() {
 
 	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
-	ew::createQuad(10, 10, quadMeshData);
+	
 
-	//viewport
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	glViewport(0, 0, 512, 512);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	
 
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 
-	//Clearing Buffers
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 	//drawScene();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -324,8 +324,10 @@ int main() {
 	{
 		"None", "Invert", "GrayScale", "Wave", "Blur"
 	};
-	char c = 0;
 	int i = 0;
+
+	
+	
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -339,6 +341,10 @@ int main() {
 		float time = (float)glfwGetTime();
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
+
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//Draw
 		litShader.use();
@@ -394,7 +400,7 @@ int main() {
 		planeMesh.draw();
 
 		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		//quadMesh.draw();
+		
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -408,6 +414,21 @@ int main() {
 		lightTransform.position = pointLights.position;
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
+
+		//Clearing Buffers
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorBuffer);
+
+		PostProcessShader.use();
+
+		PostProcessShader.setInt("_Texture", 0);
+
+		quadMesh.draw();
+
+
 
 		//Draw UI
 		ImGui::Begin("Material");
@@ -449,7 +470,9 @@ int main() {
 		//Draw UI
 		ImGui::Begin("Post Process");
 
+		ImGui::Checkbox("Switch", &isOn);
 		ImGui::Combo("Effect", &i, CC, IM_ARRAYSIZE(CC));
+		
 
 		ImGui::End();
 
