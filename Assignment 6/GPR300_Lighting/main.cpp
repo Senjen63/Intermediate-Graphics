@@ -251,68 +251,70 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	bool isOn;
+	bool isOn = true;
 	/************************************************************************************/
+	unsigned int frameBufferObject;
+	unsigned int colorBuffer;
 
 	if (isOn)
 	{
+		
+		glGenFramebuffers(1, &frameBufferObject);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
 
+
+		
+		glGenTextures(1, &colorBuffer);
+		glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+
+		unsigned int renderBufferObject;
+		glGenRenderbuffers(1, &renderBufferObject);
+		glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
+
+		GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+
+
+
+
+
+
+
+		//drawScene();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//drawFullscreenQuad
+
+		//Alternative
+		/*
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		drawScene();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT);
+		drawFullscreenQuad();
+		*/
+
+		//Specifying Draw Buffers
+		const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, draw_buffers);
+
+		for (int i = 0; i < 3; i++)
+		{
+			unsigned int texture3 = 0;
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texture3, 0);
+		}
 	}
-	unsigned int frameBufferObject;
-	glGenFramebuffers(1, &frameBufferObject);
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
 	
-
-	unsigned int colorBuffer;
-	glGenTextures(1, &colorBuffer);
-	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
-
-	unsigned int renderBufferObject;
-	glGenRenderbuffers(1, &renderBufferObject);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
-
-	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-	
-
-	
-
-	
-
-	
-	//drawScene();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//drawFullscreenQuad
-
-	//Alternative
-	/*
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	glEnable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	drawScene();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT);
-	drawFullscreenQuad();
-	*/
-
-	//Specifying Draw Buffers
-	const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-	glDrawBuffers(2, draw_buffers);
-
-	for (int i = 0; i < 3; i++)
-	{
-		unsigned int texture3 = 0;
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texture3, 0);
-	}
 
 
 	/***************************************************************************************/
@@ -320,7 +322,7 @@ int main() {
 	//float sliderF = 2.0f;
 	//int sliderI = 5;
 	float textureIntensity = 1.0f;
-	const char* CC[5] =
+	const char* postProcess[5] =
 	{
 		"None", "Invert", "GrayScale", "Wave", "Blur"
 	};
@@ -342,9 +344,14 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		if (isOn)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);		
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
 
 		//Draw
 		litShader.use();
@@ -415,18 +422,28 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
-		//Clearing Buffers
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (isOn)
+		{
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, colorBuffer);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		}
 
-		PostProcessShader.use();
+		
 
-		PostProcessShader.setInt("_Texture", 0);
+		if (isOn)
+		{
+			PostProcessShader.use();
 
-		quadMesh.draw();
+			PostProcessShader.setInt("_Texture", 0);
+
+			quadMesh.draw();
+		}
+
+		
 
 
 
@@ -471,7 +488,7 @@ int main() {
 		ImGui::Begin("Post Process");
 
 		ImGui::Checkbox("Switch", &isOn);
-		ImGui::Combo("Effect", &i, CC, IM_ARRAYSIZE(CC));
+		ImGui::Combo("Effect", &i, postProcess, IM_ARRAYSIZE(postProcess));
 		
 
 		ImGui::End();
