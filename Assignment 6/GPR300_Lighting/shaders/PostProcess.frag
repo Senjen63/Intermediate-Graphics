@@ -17,19 +17,21 @@ void main(){
 
     color = 1 -color;
 
+    
+
     if(_Invert)
     {
-
+        
     }
 
     else if(_GrayScale)
     {
-
+        //FragColor = vec4(color.x, color.y, color.z, 3);
     }
 
     else if(_Wave)
     {
-
+        
     }
 
     else if(_Blur)
