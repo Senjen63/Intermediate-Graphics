@@ -6,6 +6,7 @@ in vec2 UV;
 
 uniform sampler2D _Texture;
 uniform int _Switch;
+uniform float _Time;
 
 
 
@@ -16,16 +17,18 @@ void main(){
     color = 1 -color;
 
     
-    //fade to white
+    //white
     if(_Switch == 1)
     {
         color = 1 -color;
         FragColor = vec4(color.x, color.y, color.z, 1);
     }
 
+    //From Yellow to Black
     else if(_Switch == 2)
     {
-        //FragColor = vec4(50.0f, 50.f, 50.0f, 3);
+        float t = abs(sin(_Time));
+        FragColor = vec4(color.x, color.y, 0, 1) * t;
     }
 
     else if(_Switch == 3)

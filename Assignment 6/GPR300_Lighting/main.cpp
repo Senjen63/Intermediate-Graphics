@@ -324,7 +324,7 @@ int main() {
 	float textureIntensity = 1.0f;
 	const char* postProcess[5] =
 	{
-		"None", "Invert", "GrayScale", "Wave", "Blur"
+		"None", "White", "GrayScale", "Wave", "Blur"
 	};
 	int i = 0;
 
@@ -439,6 +439,7 @@ int main() {
 			PostProcessShader.use();
 
 			PostProcessShader.setInt("_Texture", 0);
+			PostProcessShader.setFloat("_Time", time);
 
 			quadMesh.draw();
 		}
