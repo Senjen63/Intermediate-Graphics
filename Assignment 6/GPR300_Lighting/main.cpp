@@ -256,67 +256,33 @@ int main() {
 	unsigned int frameBufferObject;
 	unsigned int colorBuffer;
 
-	if (isOn)
+	glGenFramebuffers(1, &frameBufferObject);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+
+
+
+	glGenTextures(1, &colorBuffer);
+	glBindTexture(GL_TEXTURE_2D, colorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+
+	unsigned int renderBufferObject;
+	glGenRenderbuffers(1, &renderBufferObject);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
+
+	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (!GL_FRAMEBUFFER_COMPLETE)
 	{
 		
-		glGenFramebuffers(1, &frameBufferObject);
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-
-
-		
-		glGenTextures(1, &colorBuffer);
-		glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
-
-		unsigned int renderBufferObject;
-		glGenRenderbuffers(1, &renderBufferObject);
-		glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
-
-		GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-
-
-
-
-
-
-
-		//drawScene();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//drawFullscreenQuad
-
-		//Alternative
-		/*
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-		glEnable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		drawScene();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT);
-		drawFullscreenQuad();
-		*/
-
-		//Specifying Draw Buffers
-		const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(2, draw_buffers);
-
-		for (int i = 0; i < 3; i++)
-		{
-			unsigned int texture3 = 0;
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texture3, 0);
-		}
 	}
-	
 
-
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/***************************************************************************************/
 
 	//float sliderF = 2.0f;
@@ -324,10 +290,19 @@ int main() {
 	float textureIntensity = 1.0f;
 	const char* postProcess[5] =
 	{
-		"None", "White", "GrayScale", "Wave", "Blur"
+		"None", "White", "Fade to Black", "Wave", "Blur"
 	};
-	int i = 0;
+	int index = 0;
 
+	/********Fade to Black Controller*********/
+	float speed = 1.0f;
+	/*****************************************/
+
+	/**************Blur Controller****************/
+	float directions = 16.0f;
+	float quality = 3.0;
+	float size = 8.0;
+	/*********************************************/
 	
 	
 
@@ -438,8 +413,13 @@ int main() {
 		{
 			PostProcessShader.use();
 
+			time = time * speed;
 			PostProcessShader.setInt("_Texture", 0);
 			PostProcessShader.setFloat("_Time", time);
+			PostProcessShader.setInt("_Switch", index);
+			PostProcessShader.setFloat("_Directions", directions);
+			PostProcessShader.setFloat("_Quality", quality);
+			PostProcessShader.setFloat("_Size", size);
 
 			quadMesh.draw();
 		}
@@ -489,7 +469,17 @@ int main() {
 		ImGui::Begin("Post Process");
 
 		ImGui::Checkbox("Switch", &isOn);
-		ImGui::Combo("Effect", &i, postProcess, IM_ARRAYSIZE(postProcess));
+		ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
+
+		if (index == 2)
+		{
+			ImGui::SliderFloat("Speed", &speed, 0, 20);
+		}
+
+		if (index == 3)
+		{
+
+		}
 		
 
 		ImGui::End();
