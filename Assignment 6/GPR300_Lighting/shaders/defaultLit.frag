@@ -1,5 +1,5 @@
 #version 450                          
-layout(location = 0) out vec4 FragColor;
+out vec4 FragColor;
 
 in struct Vertex
 {
@@ -180,6 +180,7 @@ void main(){
     vec3 normal = texture(_NormalMap,v_out.UV).rgb;
     normal = normal * 2.0 - 1.0;
     normal = normalize(normal);
+	color.r = color.r * _textureIntensity;
 
 	lightColor += CalculatePointLight(_PointLights, normal);
 	lightColor += CalculateDirectionalLights(_DirectionalLight, normal) + CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);

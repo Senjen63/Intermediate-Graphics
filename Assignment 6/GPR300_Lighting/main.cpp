@@ -290,7 +290,7 @@ int main() {
 	float textureIntensity = 1.0f;
 	const char* postProcess[5] =
 	{
-		"None", "White", "Fade to Black", "Wave", "Blur"
+		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect"
 	};
 	int index = 0;
 
@@ -298,11 +298,11 @@ int main() {
 	float speed = 1.0f;
 	/*****************************************/
 
-	/**************Blur Controller****************/
+	/**************Blur Controller************/
 	float directions = 16.0f;
 	float quality = 3.0;
-	float size = 8.0;
-	/*********************************************/
+	float size = 0.1;
+	/*****************************************/
 	
 	
 
@@ -326,15 +326,16 @@ int main() {
 		}
 
 		
-		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
 
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 		//litShader.setVec3("_LightPos", lightTransform.position);
-		litShader.setInt("_WoodFloor", texture);
-		litShader.setInt("_Brick", texture);
+		litShader.setInt("_WoodFloor", 0);
+		litShader.setInt("_Brick", 1);
 
 		litShader.setVec3("_PointLights.position", pointLights.position);
 		litShader.setFloat("_PointLights.intensity", pointLights.intensity);
@@ -403,7 +404,7 @@ int main() {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glActiveTexture(GL_TEXTURE0);
+			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, colorBuffer);
 		}
 
@@ -414,9 +415,13 @@ int main() {
 			PostProcessShader.use();
 
 			time = time * speed;
-			PostProcessShader.setInt("_Texture", 0);
-			PostProcessShader.setFloat("_Time", time);
+			PostProcessShader.setInt("_Texture", 2);
 			PostProcessShader.setInt("_Switch", index);
+
+			//Fade to Black
+			PostProcessShader.setFloat("_Time", time);
+			
+			//Blur
 			PostProcessShader.setFloat("_Directions", directions);
 			PostProcessShader.setFloat("_Quality", quality);
 			PostProcessShader.setFloat("_Size", size);
@@ -463,6 +468,9 @@ int main() {
 		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
 		ImGui::End();
 
+		ImGui::Begin("Texture");
+		ImGui::SliderFloat("Normal Map Intensity", &textureIntensity, 0, 1);
+		ImGui::End();
 		
 
 		//Draw UI
@@ -478,7 +486,9 @@ int main() {
 
 		if (index == 3)
 		{
-
+			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
+			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
+			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
 		}
 		
 
