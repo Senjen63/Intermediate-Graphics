@@ -188,7 +188,7 @@ int main() {
 	//Used to draw shapes. This is the shader you will be completing.
 	Shader litShader("shaders/defaultLit.vert", "shaders/defaultLit.frag");
 
-	//Shader PostProcessShader("shaders/PostProcess.vert", "shaders/PostProcess.frag");
+	Shader PostProcessShader("shaders/PostProcess.vert", "shaders/PostProcess.frag");
 
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
@@ -231,6 +231,9 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	//Disabling depth testing
+	glDisable(GL_DEPTH_TEST);
+
 	
 
 	//Initialize shape transforms
@@ -252,83 +255,71 @@ int main() {
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
 	bool isOn = true;
-	/************************************************************************************/
-	//unsigned int frameBufferObject;
-	//unsigned int colorBuffer;
+	/********************************Post Processing****************************************************/
+	unsigned int frameBufferObject;
+	unsigned int colorBuffer;
 
-	//if (isOn)
-	//{
-	//	
-	//	glGenFramebuffers(1, &frameBufferObject);
-	//	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-
-
-	//	
-	//	glGenTextures(1, &colorBuffer);
-	//	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
-
-	//	unsigned int renderBufferObject;
-	//	glGenRenderbuffers(1, &renderBufferObject);
-	//	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-	//	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
-	//	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
-
-	//	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	glGenFramebuffers(1, &frameBufferObject);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
 
 
 
+	glGenTextures(1, &colorBuffer);
+	glBindTexture(GL_TEXTURE_2D, colorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
 
+	unsigned int renderBufferObject;
+	glGenRenderbuffers(1, &renderBufferObject);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
 
+	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
+	if (!GL_FRAMEBUFFER_COMPLETE)
+	{
+		
+	}
 
-	//	//drawScene();
-	//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//	//drawFullscreenQuad
-
-	//	//Alternative
-	//	/*
-	//	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-	//	glEnable(GL_DEPTH_TEST);
-	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//	drawScene();
-	//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//	glDisable(GL_DEPTH_TEST);
-	//	glClear(GL_COLOR_BUFFER_BIT);
-	//	drawFullscreenQuad();
-	//	*/
-
-	//	//Specifying Draw Buffers
-	//	const GLenum draw_buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-	//	glDrawBuffers(2, draw_buffers);
-
-	//	for (int i = 0; i < 3; i++)
-	//	{
-	//		unsigned int texture3 = 0;
-	//		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texture3, 0);
-	//	}
-	//}
-	
-
-
-	/***************************************************************************************/
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	/******************************************************************************************************/
 
 	//float sliderF = 2.0f;
 	//int sliderI = 5;
-
-	/*float textureIntensity = 1.0f;
+	float textureIntensity = 1.0f;
 	const char* postProcess[5] =
 	{
-		"None", "Invert", "GrayScale", "Wave", "Blur"
+		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect"
 	};
-	int i = 0;*/
+	int index = 0;
 
+	/********Fade to Black Controller*********/
+	float speed = 1.0f;
+	/*****************************************/
+
+	/**************Blur Controller************/
+	float directions = 16.0f;
+	float quality = 3.0;
+	float size = 0.1;
+	/*****************************************/
+
+	/******************************Shadow Mapping***********************/
+
+	//GLenum shadowFramebuffer;
+	
+	//shadowFrameBuffer.bind();
+	//drawScene(depthOnlyShader, lightViewProjection);
+	//shadowFrameBuffer.unbind();
+	//drawScene(litShader, cameraViewProjection);
+
+	//glm::mat4 lightView = glm::lookAt(eyePos, centerPos, up);
+	//glm::mat4 lightProj = glm::ortho(l, r, u, d, n, f);
+
+	/*******************************************************************/
 	
 	
 
@@ -345,28 +336,33 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		/*if (isOn)
+		if (isOn)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}*/
+		}
 
 		
-		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
 
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
 		//litShader.setVec3("_LightPos", lightTransform.position);
-		litShader.setInt("_WoodFloor", texture);
-		litShader.setInt("_Brick", texture);
+		litShader.setInt("_WoodFloor", 0);
+		litShader.setInt("_Brick", 1);
 
+		//Point Light Uniforms
+
+		/*
 		litShader.setVec3("_PointLights.position", pointLights.position);
 		litShader.setFloat("_PointLights.intensity", pointLights.intensity);
 		litShader.setVec3("_PointLights.color", pointLights.color);
 		litShader.setFloat("_PointLights.linearAttenuation", pointLights.linearAttenuation);
 		litShader.setFloat("_PointLights.quadractic", pointLights.quadractic);
+		*/
 
 		//Directional Light Uniforms
 		litShader.setVec3("_DirectionalLight.direction", directionalLight.direction);
@@ -374,6 +370,8 @@ int main() {
 		litShader.setVec3("_DirectionalLight.color", directionalLight.color);
 
 		//Spot Light Uniforms
+
+		/*
 		litShader.setVec3("_SpotLight.position", spotLight.position);
 		litShader.setFloat("_SpotLight.intensity", spotLight.intensity);
 		litShader.setVec3("_SpotLight.color", spotLight.color);
@@ -383,6 +381,7 @@ int main() {
 		litShader.setFloat("_SpotLight.minAngle", spotLight.minAngle);
 		litShader.setFloat("_SpotLight.maxAngle", spotLight.maxAngle);
 		litShader.setFloat("_SpotLight.angleFallOff", spotLight.angleFallOff);
+		*/
 
 		//Material Uniforms
 		litShader.setVec3("_Material.color", material.color);
@@ -407,7 +406,7 @@ int main() {
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();
 
-		litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
 		
 
 		//Draw light as a small sphere using unlit shader, ironically.
@@ -421,34 +420,45 @@ int main() {
 		lightColor = pointLights.color;
 		lightTransform.position = pointLights.position;
 
-		/*litShader.setFloat("_textureIntensity", textureIntensity);*/
+		litShader.setFloat("_textureIntensity", textureIntensity);
 
-		//if (isOn)
-		//{
-		//	//Clearing Buffers
-		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (isOn)
+		{
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//	glActiveTexture(GL_TEXTURE0);
-		//	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		//}
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		}
 
 		
 
-		/*if (isOn)
+		if (isOn)
 		{
 			PostProcessShader.use();
 
-			PostProcessShader.setInt("_Texture", 0);
+			time = time * speed;
+			PostProcessShader.setInt("_Texture", 2);
+			PostProcessShader.setInt("_Switch", index);
+
+			//Fade to Black
+			PostProcessShader.setFloat("_Time", time);
+			
+			//Blur
+			PostProcessShader.setFloat("_Directions", directions);
+			PostProcessShader.setFloat("_Quality", quality);
+			PostProcessShader.setFloat("_Size", size);
 
 			quadMesh.draw();
-		}*/
+		}
 
 		
 
 
 
 		//Draw UI
+
 		ImGui::Begin("Material");
 		ImGui::ColorEdit3("Material Color", &material.color.r);
 		ImGui::SliderFloat("Material Ambient K", &material.ambientK, 0.0f, 1.0f);
@@ -463,6 +473,7 @@ int main() {
 		ImGui::ColorEdit3("Directional Light Color", &directionalLight.color.r);
 		ImGui::End();
 
+		/*
 		ImGui::Begin("Point Lights");
 		ImGui::SliderFloat("Point Light Intensity", &pointLights.intensity, 0.0f, 1.0f);
 		ImGui::SliderFloat("Point Light Linear", &pointLights.linearAttenuation, 0.0f, 1.0f);
@@ -470,7 +481,9 @@ int main() {
 		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
 		ImGui::ColorEdit3("Point Light Color", &pointLights.color.r);
 		ImGui::End();
+		*/
 
+		/*
 		ImGui::Begin("Spot Light");
 		ImGui::DragFloat3("Spot Light Position", &spotLight.position.x);
 		ImGui::DragFloat3("Spot Light Direction", &spotLight.direction.x);
@@ -482,14 +495,30 @@ int main() {
 		ImGui::SliderFloat("Spot Light Linear", &spotLight.linearAttenuation, 0.0f, 100.0f);
 		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
 		ImGui::End();
+		*/
 
+		ImGui::Begin("Texture");
+		ImGui::SliderFloat("Normal Map Intensity", &textureIntensity, 0, 1);
+		ImGui::End();
 		
 
 		//Draw UI
 		ImGui::Begin("Post Process");
 
 		ImGui::Checkbox("Switch", &isOn);
-		/*ImGui::Combo("Effect", &i, postProcess, IM_ARRAYSIZE(postProcess));*/
+		ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
+
+		if (index == 2)
+		{
+			ImGui::SliderFloat("Speed", &speed, 0, 20);
+		}
+
+		if (index == 3)
+		{
+			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
+			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
+			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
+		}
 		
 
 		ImGui::End();

@@ -1,6 +1,7 @@
 #version 450                          
-layout(location = 0) out vec4 FragColor;
-layout(location = 1) out vec4 FragColor2;
+out vec4 FragColor;
+
+in vec4 LightSpacePos;
 
 in struct Vertex
 {
@@ -51,6 +52,7 @@ struct SpotLight
 uniform sampler2D _WoodFloor;
 uniform sampler2D _Brick;
 uniform sampler2D _NormalMap;
+uniform sampler2D _ShadowMap;
 uniform Material _Material;
 uniform vec3 _CameraPosition;
 uniform int _NumberOfLight;
@@ -58,6 +60,7 @@ uniform DirectionalLight _DirectionalLight;
 uniform PointLights _PointLights;
 uniform SpotLight _SpotLight;
 uniform float _textureIntensity;
+
 
 float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
 {
@@ -174,6 +177,11 @@ vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal)
 	return phongShade;
 }
 
+float CalculateShadow(sampler2D map, vec4 light)
+{
+	return 0;
+}
+
 
 void main(){ 
 	vec3 lightColor  = vec3(0);
@@ -181,9 +189,15 @@ void main(){
     vec3 normal = texture(_NormalMap,v_out.UV).rgb;
     normal = normal * 2.0 - 1.0;
     normal = normalize(normal);
+	color.r = color.r * _textureIntensity;
 
-	lightColor += CalculatePointLight(_PointLights, normal);
-	lightColor += CalculateDirectionalLights(_DirectionalLight, normal) + CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
+	//lightColor += CalculatePointLight(_PointLights, normal);
+	lightColor += CalculateDirectionalLights(_DirectionalLight, normal);
+
+	float shadow = CalculateShadow(_ShadowMap, LightSpacePos);
+	//vec3 light = CalculateAmbient() + (CalculateDiffuse(_DirectionalLight, _DirectionalLight.color, normal) + specular) * (1.0 - CalculateShadow(_ShadowMap, LightSpacePos));
+
+	//+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
     
     
     FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1);
