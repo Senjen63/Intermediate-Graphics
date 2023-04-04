@@ -179,7 +179,15 @@ vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal)
 
 float CalculateShadow(sampler2D map, vec4 light)
 {
-	return 0;
+	vec3 sampleCoord = light.xyz / light.w;
+
+	sampleCoord = sampleCoord * 0.5 + 0.5;
+
+	float shadowMapDepth = texture(map, sampleCoord.xy).r;
+	float myDepth = sampleCoord.z;
+
+
+	return step(shadowMapDepth, myDepth);
 }
 
 

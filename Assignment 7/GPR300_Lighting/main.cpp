@@ -309,16 +309,28 @@ int main() {
 
 	/******************************Shadow Mapping***********************/
 
-	//GLenum shadowFramebuffer;
+	unsigned int shadowFrameBuffer;
+	unsigned int shadowDepthBuffer;
+
+	glGenFramebuffers(1, &shadowFrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
 	
-	//shadowFrameBuffer.bind();
-	//drawScene(depthOnlyShader, lightViewProjection);
-	//shadowFrameBuffer.unbind();
-	//drawScene(litShader, cameraViewProjection);
+	glGenTextures(1, &shadowDepthBuffer);
+	glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthBuffer, 0);
 
-	//glm::mat4 lightView = glm::lookAt(eyePos, centerPos, up);
-	//glm::mat4 lightProj = glm::ortho(l, r, u, d, n, f);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 
+	GLenum shadowFrameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (shadowFrameBufferStatus == GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Shadow buffer is Complete");
+	}
 	/*******************************************************************/
 	
 	
@@ -326,7 +338,7 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -338,13 +350,21 @@ int main() {
 
 		if (isOn)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
+			glViewport(0, 0, 1024, 1024);
 		}
 
+		else
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		}
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
+		
 
 		//Draw
 		litShader.use();
@@ -429,7 +449,7 @@ int main() {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+			glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
 		}
 
 		
