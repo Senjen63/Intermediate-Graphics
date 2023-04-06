@@ -45,7 +45,7 @@ void main(){
 
     v_out.WorldPosition = vec3(_Model * vec4(vPos,1));
 
-    lightSpacePos = _LightViewProj * _Model * vec4(vPos, 1);
+    //lightSpacePos = _LightViewProj * _Model * vec4(vPos, 1);
 
     gl_Position = _Projection * _View * _Model * vec4(vPos,1);
 }

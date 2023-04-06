@@ -1,7 +1,7 @@
 #version 450                          
 out vec4 FragColor;
 
-in vec4 LightSpacePos;
+//in vec4 LightSpacePos;
 
 in struct Vertex
 {
@@ -52,7 +52,7 @@ struct SpotLight
 uniform sampler2D _WoodFloor;
 uniform sampler2D _Brick;
 uniform sampler2D _NormalMap;
-uniform sampler2D _ShadowMap;
+//uniform sampler2D _ShadowMap;
 uniform Material _Material;
 uniform vec3 _CameraPosition;
 uniform int _NumberOfLight;
@@ -184,7 +184,17 @@ float CalculateShadow(sampler2D map, vec4 light)
 	sampleCoord = sampleCoord * 0.5 + 0.5;
 
 	float shadowMapDepth = texture(map, sampleCoord.xy).r;
-	float myDepth = sampleCoord.z;
+	float bias = 0.005;
+	float minBias = 0.005;
+	float maxBias = 0.015;
+
+	//bias = max(maxBias * (1.0 - dot(normal, light), minBias);
+
+	float myDepth = sampleCoord.z - bias;
+
+	
+
+	
 
 
 	return step(shadowMapDepth, myDepth);
@@ -199,13 +209,13 @@ void main(){
     normal = normalize(normal);
 	color.r = color.r * _textureIntensity;
 
-	//lightColor += CalculatePointLight(_PointLights, normal);
-	lightColor += CalculateDirectionalLights(_DirectionalLight, normal);
+	lightColor += CalculatePointLight(_PointLights, normal);
+	lightColor += CalculateDirectionalLights(_DirectionalLight, normal)//;
 
-	float shadow = CalculateShadow(_ShadowMap, LightSpacePos);
+	//float shadow = CalculateShadow(_ShadowMap, LightSpacePos);
 	//vec3 light = CalculateAmbient() + (CalculateDiffuse(_DirectionalLight, _DirectionalLight.color, normal) + specular) * (1.0 - CalculateShadow(_ShadowMap, LightSpacePos));
 
-	//+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
+	+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
     
     
     FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1);
