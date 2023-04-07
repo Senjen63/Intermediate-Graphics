@@ -190,10 +190,24 @@ float CalculateShadow(sampler2D map, vec4 light)
 
 	//bias = max(maxBias * (1.0 - dot(normal, light), minBias);
 
-	float myDepth = sampleCoord.z - bias;
-
 	
 
+	float myDepth = sampleCoord.z - bias;
+
+	float totalShadow = 0;
+	vec2 texelOffset = 1.0 / textureSize(map, 0);
+
+	for (int y = -1; y <= 1; y++)
+	{
+		for (int x = -1; x <= 1; x++)
+		{
+			vec2 uv = light.xy + vec2(x * texelOffset.x, y * texelOffset.y);
+
+			//totalShadow += step(texture(map, uv), myDepth);
+		}
+	}
+
+	totalShadow /= 9.0;
 	
 
 

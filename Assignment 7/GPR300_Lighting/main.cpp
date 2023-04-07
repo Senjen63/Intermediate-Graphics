@@ -316,18 +316,21 @@ int main() {
 	
 
 	glGenFramebuffers(1, &shadowFrameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
-	
+
 	glGenTextures(1, &shadowDepthBuffer);
 	glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);	
+	
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthBuffer, 0);
 
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	
 	GLenum shadowFrameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -352,8 +355,8 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
 		glViewport(0, 0, 1024, 1024);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		ShadowShader.use();
@@ -381,7 +384,9 @@ int main() {
 		//glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
 		//glViewport(0, 0, 1024, 1024);
 		
-
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -389,8 +394,7 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		
 
 		
 		
@@ -504,8 +508,12 @@ int main() {
 		//ShadowShader.use();
 		//quadMesh.draw();
 
-		
-
+		/**********************************/
+		glCullFace(GL_FRONT);
+		//renderShadowMap();
+		glCullFace(GL_BACK);
+		//renderShadowMap();
+		/**********************************/
 
 
 		//Draw UI
