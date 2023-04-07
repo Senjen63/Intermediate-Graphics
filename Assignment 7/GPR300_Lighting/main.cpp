@@ -313,14 +313,14 @@ int main() {
 
 	unsigned int shadowFrameBuffer;
 	unsigned int shadowDepthBuffer;
-	GLenum shadowFrameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	
 
 	glGenFramebuffers(1, &shadowFrameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
 	
 	glGenTextures(1, &shadowDepthBuffer);
 	glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -330,7 +330,7 @@ int main() {
 	glReadBuffer(GL_NONE);
 
 	
-
+	GLenum shadowFrameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (shadowFrameBufferStatus != GL_FRAMEBUFFER_COMPLETE)
 	{
 		printf("Shadow buffer is not Complete");
@@ -352,22 +352,47 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		if (isOn)
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
-			glViewport(0, 0, 1024, 1024);
-		}
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
+		glViewport(0, 0, 1024, 1024);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
-		else
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		}
+		ShadowShader.use();
+		ShadowShader.setMat4("_Projection", camera.getProjectionMatrix());
+		ShadowShader.setMat4("_View", camera.getViewMatrix());
+
+		//Draw cube
+		ShadowShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		cubeMesh.draw();
+
+		//Draw sphere
+		ShadowShader.setMat4("_Model", sphereTransform.getModelMatrix());
+		sphereMesh.draw();
+
+		//Draw cylinder
+		ShadowShader.setMat4("_Model", cylinderTransform.getModelMatrix());
+		cylinderMesh.draw();
+
+		//Draw plane
+		ShadowShader.setMat4("_Model", planeTransform.getModelMatrix());
+		planeMesh.draw();
+
+		
+		
+		//glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
+		//glViewport(0, 0, 1024, 1024);
+		
+
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
+
+		
 		
 
 		//Draw
@@ -447,33 +472,33 @@ int main() {
 
 		if (isOn)
 		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			////Clearing Buffers
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
+			//glActiveTexture(GL_TEXTURE2);
+			//glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
 		}
 
 		
 
 		if (isOn)
 		{
-			PostProcessShader.use();
+			//PostProcessShader.use();
 
-			time = time * speed;
-			PostProcessShader.setInt("_Texture", 2);
-			PostProcessShader.setInt("_Switch", index);
+			//time = time * speed;
+			//PostProcessShader.setInt("_Texture", 2);
+			//PostProcessShader.setInt("_Switch", index);
 
-			//Fade to Black
-			PostProcessShader.setFloat("_Time", time);
-			
-			//Blur
-			PostProcessShader.setFloat("_Directions", directions);
-			PostProcessShader.setFloat("_Quality", quality);
-			PostProcessShader.setFloat("_Size", size);
+			////Fade to Black
+			//PostProcessShader.setFloat("_Time", time);
+			//
+			////Blur
+			//PostProcessShader.setFloat("_Directions", directions);
+			//PostProcessShader.setFloat("_Quality", quality);
+			//PostProcessShader.setFloat("_Size", size);
 
-			quadMesh.draw();
+			//quadMesh.draw();
 		}
 
 		//ShadowShader.use();
