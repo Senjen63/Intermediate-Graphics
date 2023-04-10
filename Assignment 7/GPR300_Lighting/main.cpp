@@ -258,7 +258,7 @@ int main() {
 
 	bool isOn = true;
 	/********************************Post Processing****************************************************/
-	unsigned int frameBufferObject;
+	/*unsigned int frameBufferObject;
 	unsigned int colorBuffer;
 
 	glGenFramebuffers(1, &frameBufferObject);
@@ -285,7 +285,7 @@ int main() {
 	if (frameBufferObjectStatus != GL_FRAMEBUFFER_COMPLETE)
 	{
 		printf("Frame buffer is not Complete");
-	}
+	}*/
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/******************************************************************************************************/
@@ -358,6 +358,7 @@ int main() {
 		glViewport(0, 0, 1024, 1024);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
 		glClear(GL_DEPTH_BUFFER_BIT);
+		
 
 		ShadowShader.use();
 		ShadowShader.setMat4("_Projection", camera.getProjectionMatrix());
@@ -394,7 +395,8 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
 
 		
 		
@@ -528,11 +530,11 @@ int main() {
 		ImGui::End();
 		*/
 
-		ImGui::Begin("Directional Light");
+		/*ImGui::Begin("Directional Light");
 		ImGui::DragFloat3("Directional Light Direction", &directionalLight.direction.x);
 		ImGui::SliderFloat("Directional Light Intensity", &directionalLight.intensity, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Directional Light Color", &directionalLight.color.r);
-		ImGui::End();
+		ImGui::End();*/
 
 		/*
 		ImGui::Begin("Point Lights");
@@ -565,7 +567,7 @@ int main() {
 		*/
 
 		//Draw UI
-		ImGui::Begin("Post Process");
+		/*ImGui::Begin("Post Process");
 
 		ImGui::Checkbox("Switch", &isOn);
 		ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
@@ -582,7 +584,7 @@ int main() {
 			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
 		}
 
-		ImGui::End();
+		ImGui::End();*/
 
 		ImGui::Begin("Shadow Map");
 
