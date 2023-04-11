@@ -32,7 +32,7 @@ private:
 	float mPitch = 0.0f;
 	float mFov = 60.0f;
 	float mNearPlane = 0.1f;
-	float mFarPlane = 100.0f;
+	float mFarPlane = 10000.0f;
 	float mOrthoSize = 7.5f;
 	bool mOrtho = false;
 	float mAspectRatio = 1.7777f;

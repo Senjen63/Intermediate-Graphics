@@ -1,7 +1,7 @@
 #version 450                          
 out vec4 FragColor;
 
-//in vec4 LightSpacePos;
+in vec4 lightSpacePos;
 
 in struct Vertex
 {
@@ -52,7 +52,7 @@ struct SpotLight
 uniform sampler2D _WoodFloor;
 uniform sampler2D _Brick;
 uniform sampler2D _NormalMap;
-//uniform sampler2D _ShadowMap;
+uniform sampler2D _ShadowMap;
 uniform Material _Material;
 uniform vec3 _CameraPosition;
 uniform int _NumberOfLight;
@@ -177,39 +177,17 @@ vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal)
 	return phongShade;
 }
 
-float CalculateShadow(sampler2D map, vec4 light)
+float CalculateShadow(sampler2D shadowMap, vec4 lightSpacePos, vec3 normal)
 {
-	vec3 sampleCoord = light.xyz / light.w;
+	vec3 sampleCoord = lightSpacePos.xyz / lightSpacePos.w;
+	float minBias = 0.005;
+	float maxBias = 0.015;
+	float bias = max(maxBias * (1.0 - dot(normal, _DirectionalLight.direction)), minBias);
 
 	sampleCoord = sampleCoord * 0.5 + 0.5;
 
-	float shadowMapDepth = texture(map, sampleCoord.xy).r;
-	float bias = 0.005;
-	float minBias = 0.005;
-	float maxBias = 0.015;
-
-	//bias = max(maxBias * (1.0 - dot(normal, light), minBias);
-
-	
-
+	float shadowMapDepth = texture(shadowMap, sampleCoord.xy).r;
 	float myDepth = sampleCoord.z - bias;
-
-	float totalShadow = 0;
-	vec2 texelOffset = 1.0 / textureSize(map, 0);
-
-	for (int y = -1; y <= 1; y++)
-	{
-		for (int x = -1; x <= 1; x++)
-		{
-			vec2 uv = light.xy + vec2(x * texelOffset.x, y * texelOffset.y);
-
-			//totalShadow += step(texture(map, uv), myDepth);
-		}
-	}
-
-	totalShadow /= 9.0;
-	
-
 
 	return step(shadowMapDepth, myDepth);
 }
@@ -224,12 +202,17 @@ void main(){
 	color.r = color.r * _textureIntensity;
 
 	lightColor += CalculatePointLight(_PointLights, normal);
-	lightColor += CalculateDirectionalLights(_DirectionalLight, normal)//;
+	lightColor += CalculateDirectionalLights(_DirectionalLight, normal);
 
-	//float shadow = CalculateShadow(_ShadowMap, LightSpacePos);
-	//vec3 light = CalculateAmbient() + (CalculateDiffuse(_DirectionalLight, _DirectionalLight.color, normal) + specular) * (1.0 - CalculateShadow(_ShadowMap, LightSpacePos));
+	float shadow = CalculateShadow(_ShadowMap, lightSpacePos, normal);
 
-	+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
+
+	vec3 light = CalculateAmbient() + 
+	(CalculateDiffuse(_DirectionalLight.direction, _DirectionalLight.color, normal) + CalculateBlinnPhongSpecular(_DirectionalLight.direction, 
+	_DirectionalLight.color, _DirectionalLight.intensity, normal))
+	* (1.0 - CalculateShadow(_ShadowMap, lightSpacePos, normal));
+
+	//+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
     
     
     FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1);

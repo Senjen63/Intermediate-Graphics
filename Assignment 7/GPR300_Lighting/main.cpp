@@ -60,7 +60,7 @@ bool flip = true;
 struct DirectionalLight
 {
 	glm::vec3 color = glm::vec3(1, 0, 0);
-	glm::vec3 direction = glm::vec3(0, 1, 0);
+	glm::vec3 direction = glm::vec3(0.2f, -0.8f, 0.0f);
 	float intensity = 1.0f;
 	//linear and spotlight
 };
@@ -234,7 +234,7 @@ int main() {
 	glDepthFunc(GL_LESS);
 
 	//Disabling depth testing
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
 
 	
 
@@ -287,7 +287,7 @@ int main() {
 		printf("Frame buffer is not Complete");
 	}*/
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/******************************************************************************************************/
 
 	//float sliderF = 2.0f;
@@ -316,21 +316,24 @@ int main() {
 	
 
 	glGenFramebuffers(1, &shadowFrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
 
 	glGenTextures(1, &shadowDepthBuffer);
 	glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);	
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthBuffer, 0);
 
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 
 	
 	GLenum shadowFrameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -338,7 +341,16 @@ int main() {
 	{
 		printf("Shadow buffer is not Complete");
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/*******************************************************************/
+
+	float projectLeft = -10.0f;
+	float projectRight = 10.0f;
+	float projectBottom = -10.0f;
+	float projectTop = 10.0f;
+	float projectNear = 0.1f;
+	float projectFar = 20.0f;
 	
 	
 
@@ -355,14 +367,18 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		glViewport(0, 0, 1024, 1024);
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
+		glViewport(0, 0, 1024, 1024);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		
+		glm::mat4 projection = glm::ortho(projectLeft, projectRight, projectBottom, projectTop, 0.1f, 20.0f);
+		glm::vec3 iPos = glm::normalize(directionalLight.direction) * -10.0f;
+		glm::mat4 view = glm::lookAt(iPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
 		ShadowShader.use();
-		ShadowShader.setMat4("_Projection", camera.getProjectionMatrix());
-		ShadowShader.setMat4("_View", camera.getViewMatrix());
+		ShadowShader.setMat4("_Projection", projection);
+		ShadowShader.setMat4("_View", view);
 
 		//Draw cube
 		ShadowShader.setMat4("_Model", cubeTransform.getModelMatrix());
@@ -378,28 +394,11 @@ int main() {
 
 		//Draw plane
 		ShadowShader.setMat4("_Model", planeTransform.getModelMatrix());
-		planeMesh.draw();
-
-		
-		
-		//glBindFramebuffer(GL_FRAMEBUFFER, shadowFrameBuffer);
-		//glViewport(0, 0, 1024, 1024);
-		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		
+		planeMesh.draw();		
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
-
-		
-		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
 		//Draw
 		litShader.use();
@@ -407,7 +406,13 @@ int main() {
 		litShader.setMat4("_View", camera.getViewMatrix());
 		//litShader.setVec3("_LightPos", lightTransform.position);
 		litShader.setInt("_WoodFloor", 0);
-		litShader.setInt("_Brick", 1);
+		litShader.setInt("_ShadowMap", 2);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
 
 		//Point Light Uniforms
 		
@@ -476,44 +481,44 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
-		if (isOn)
-		{
-			////Clearing Buffers
-			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//if (isOn)
+		//{
+		//	////Clearing Buffers
+		//	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			//glActiveTexture(GL_TEXTURE2);
-			//glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
-		}
+		//	//glActiveTexture(GL_TEXTURE2);
+		//	//glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
+		//}
 
 		
 
-		if (isOn)
-		{
-			//PostProcessShader.use();
+		//if (isOn)
+		//{
+		//	//PostProcessShader.use();
 
-			//time = time * speed;
-			//PostProcessShader.setInt("_Texture", 2);
-			//PostProcessShader.setInt("_Switch", index);
+		//	//time = time * speed;
+		//	//PostProcessShader.setInt("_Texture", 2);
+		//	//PostProcessShader.setInt("_Switch", index);
 
-			////Fade to Black
-			//PostProcessShader.setFloat("_Time", time);
-			//
-			////Blur
-			//PostProcessShader.setFloat("_Directions", directions);
-			//PostProcessShader.setFloat("_Quality", quality);
-			//PostProcessShader.setFloat("_Size", size);
+		//	////Fade to Black
+		//	//PostProcessShader.setFloat("_Time", time);
+		//	//
+		//	////Blur
+		//	//PostProcessShader.setFloat("_Directions", directions);
+		//	//PostProcessShader.setFloat("_Quality", quality);
+		//	//PostProcessShader.setFloat("_Size", size);
 
-			//quadMesh.draw();
-		}
+		//	//quadMesh.draw();
+		//}
 
 		//ShadowShader.use();
 		//quadMesh.draw();
 
 		/**********************************/
-		glCullFace(GL_FRONT);
+		//glCullFace(GL_FRONT);
 		//renderShadowMap();
-		glCullFace(GL_BACK);
+		//glCullFace(GL_BACK);
 		//renderShadowMap();
 		/**********************************/
 
@@ -530,11 +535,11 @@ int main() {
 		ImGui::End();
 		*/
 
-		/*ImGui::Begin("Directional Light");
+		ImGui::Begin("Directional Light");
 		ImGui::DragFloat3("Directional Light Direction", &directionalLight.direction.x);
 		ImGui::SliderFloat("Directional Light Intensity", &directionalLight.intensity, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Directional Light Color", &directionalLight.color.r);
-		ImGui::End();*/
+		ImGui::End();
 
 		/*
 		ImGui::Begin("Point Lights");
