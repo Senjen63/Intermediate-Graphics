@@ -213,7 +213,10 @@ void main(){
 	* (1.0 - CalculateShadow(_ShadowMap, lightSpacePos, normal));
 
 	//+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
+
+	lightColor += shadow;
+	lightColor += light;
     
     
-    FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1);
+    FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1.0f);
 }

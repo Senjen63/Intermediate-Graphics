@@ -372,7 +372,7 @@ int main() {
 		glViewport(0, 0, 1024, 1024);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		
-		glm::mat4 projection = glm::ortho(projectLeft, projectRight, projectBottom, projectTop, 0.1f, 20.0f);
+		glm::mat4 projection = glm::ortho(projectLeft, projectRight, projectBottom, projectTop, projectNear, projectFar);
 		glm::vec3 iPos = glm::normalize(directionalLight.direction) * -10.0f;
 		glm::mat4 view = glm::lookAt(iPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 
@@ -592,7 +592,12 @@ int main() {
 		ImGui::End();*/
 
 		ImGui::Begin("Shadow Map");
-
+		ImGui::SliderFloat("Projection Left", &projectLeft, -50, 0);
+		ImGui::SliderFloat("Projection Right", &projectRight, 0, 50);
+		ImGui::SliderFloat("Projection Bottom", &projectBottom, -50, 0);
+		ImGui::SliderFloat("Projection Top", &projectTop, 0, 50);
+		ImGui::SliderFloat("Projection Near", &projectNear, -10, 10);
+		ImGui::SliderFloat("Projection Far", &projectFar, 0, 10000);
 		ImGui::End();
 
 		ImGui::Render();
