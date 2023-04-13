@@ -208,7 +208,7 @@ int main() {
 	ew::MeshData cylinderMeshData;
 	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
-	ew::createPlane(1.0f, 1.0f, planeMeshData);
+	ew::createPlane(2.0f, 2.0f, planeMeshData);
 
 
 	ew::Mesh cubeMesh(&cubeMeshData);
@@ -407,6 +407,8 @@ int main() {
 		//litShader.setVec3("_LightPos", lightTransform.position);
 		litShader.setInt("_WoodFloor", 0);
 		litShader.setInt("_ShadowMap", 2);
+
+
 
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
