@@ -59,7 +59,7 @@ bool flip = true;
 
 struct DirectionalLight
 {
-	glm::vec3 color = glm::vec3(1, 0, 0);
+	glm::vec3 color = glm::vec3(0, 1, 0);
 	glm::vec3 direction = glm::vec3(0.2f, -0.8f, 0.0f);
 	float intensity = 1.0f;
 	//linear and spotlight
@@ -67,7 +67,7 @@ struct DirectionalLight
 
 struct PointLights
 {
-	glm::vec3 color = glm::vec3(1, 0, 0);
+	glm::vec3 color = glm::vec3(1, 1, 1);
 	glm::vec3 position = glm::vec3(1, 1, 0);
 	float intensity = 1.0f;
 	float linearAttenuation = 0.22f;
@@ -77,7 +77,7 @@ struct PointLights
 
 struct SpotLight
 {
-	glm::vec3 color = glm::vec3(1, 0, 0);
+	glm::vec3 color = glm::vec3(1, 1, 1);
 	glm::vec3 position = glm::vec3(0, 1, 0);
 	glm::vec3 direction = glm::vec3(0, 1, 0);
 	float intensity = 1.0f;
@@ -91,7 +91,7 @@ struct SpotLight
 
 struct Material
 {
-	glm::vec3 color = glm::vec3(1, 0, 0);
+	glm::vec3 color = glm::vec3(1, 1, 1);
 	float ambientK = 0.25f, diffuseK = 0.5f, specularK = 0.5f; //(0 - 1)
 	float shininess = 64.0f;
 };
@@ -351,6 +351,8 @@ int main() {
 	float projectTop = 10.0f;
 	float projectNear = 0.1f;
 	float projectFar = 20.0f;
+	float minBias = 0.005;
+	float maxBias = 0.015;
 	
 	
 
@@ -449,6 +451,10 @@ int main() {
 		litShader.setFloat("_Material.diffuseK", material.diffuseK);
 		litShader.setFloat("_Material.specularK", material.specularK);
 		litShader.setFloat("_Material.shininess", material.shininess);
+
+		//Shadow Uniform
+		litShader.setFloat("_MinBias", minBias);
+		litShader.setFloat("_MaxBias", maxBias);
 		
 
 		//Draw cube
@@ -600,6 +606,8 @@ int main() {
 		ImGui::SliderFloat("Projection Top", &projectTop, 0, 50);
 		ImGui::SliderFloat("Projection Near", &projectNear, -10, 10);
 		ImGui::SliderFloat("Projection Far", &projectFar, 0, 10000);
+		ImGui::SliderFloat("Mininum Bias", &minBias, 0, 5);
+		ImGui::SliderFloat("Maxium Bias", &maxBias, 0, 5);
 		ImGui::End();
 
 		ImGui::Render();

@@ -60,6 +60,8 @@ uniform DirectionalLight _DirectionalLight;
 uniform PointLights _PointLights;
 uniform SpotLight _SpotLight;
 uniform float _textureIntensity;
+uniform float _MinBias;
+uniform float _MaxBias;
 
 
 float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
@@ -177,17 +179,33 @@ vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal)
 	return phongShade;
 }
 
-float CalculateShadow(sampler2D shadowMap, vec4 lightSpacePos, vec3 normal)
+float CalculateShadow(sampler2D shadowMap, vec4 lightSpacePos, vec3 normal, float minBias, float maxBias)
 {
 	vec3 sampleCoord = lightSpacePos.xyz / lightSpacePos.w;
-	float minBias = 0.005;
-	float maxBias = 0.015;
-	float bias = max(maxBias * (1.0 - dot(normal, _DirectionalLight.direction)), minBias);
-
 	sampleCoord = sampleCoord * 0.5 + 0.5;
+	
+	float bias = max(maxBias * (1.0 - dot(normal, _DirectionalLight.direction)), minBias);	
 
 	float shadowMapDepth = texture(shadowMap, sampleCoord.xy).r;
 	float myDepth = sampleCoord.z - bias;
+
+	
+
+	/*********************************************************************************/
+	float totalShadow = 0;
+	vec2 texelOffset = 1.0 / textureSize(shadowMap, 0);
+	for(int y = -1; y <= 1; y++)
+	{
+		for(int x = -1; x <= 1; x++)
+		{
+			vec2 uv = lightSpacePos.xy + vec2(x * texelOffset.x, y * texelOffset.y);
+
+			//totalShadow += step(texture(shadowMap, uv), myDepth);
+		}
+	}
+
+	totalShadow /= 9.0;
+	/*********************************************************************************/
 
 	return step(shadowMapDepth, myDepth);
 }
@@ -202,17 +220,19 @@ void main(){
 	color.r = color.r * _textureIntensity;
 
 	lightColor += CalculatePointLight(_PointLights, normal);
-	lightColor += CalculateDirectionalLights(_DirectionalLight, normal);
+	lightColor += CalculateDirectionalLights(_DirectionalLight, normal)
+	+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
 
-	float shadow = CalculateShadow(_ShadowMap, lightSpacePos, normal);
+	//if there is shadow
+	float shadow = CalculateShadow(_ShadowMap, lightSpacePos, normal, _MinBias, _MaxBias);
 
 
 	vec3 light = CalculateAmbient() + 
-	(CalculateDiffuse(_DirectionalLight.direction, _DirectionalLight.color, normal) + CalculateBlinnPhongSpecular(_DirectionalLight.direction, 
-	_DirectionalLight.color, _DirectionalLight.intensity, normal))
-	* (1.0 - CalculateShadow(_ShadowMap, lightSpacePos, normal));
-
-	//+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
+	(CalculateDiffuse(_DirectionalLight.direction, _DirectionalLight.color, normal) + 
+	CalculateBlinnPhongSpecular(_DirectionalLight.direction, 
+	_DirectionalLight.color, _DirectionalLight.intensity, normal)) * 
+	(1.0 - CalculateShadow(_ShadowMap, lightSpacePos, normal, _MinBias, _MaxBias));
+	
 
 	lightColor += shadow;
 	lightColor += light;
