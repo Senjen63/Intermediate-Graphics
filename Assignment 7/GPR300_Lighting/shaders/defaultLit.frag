@@ -5,7 +5,8 @@ in vec4 lightSpacePos;
 
 in struct Vertex
 {
-	vec3 WorldPosition;	
+	vec3 WorldPosition;
+	vec3 WorldNormal;
 	vec2 UV;
 	mat3 TBN;
 }v_out;
@@ -184,28 +185,10 @@ float CalculateShadow(sampler2D shadowMap, vec4 lightSpacePos, vec3 normal, floa
 	vec3 sampleCoord = lightSpacePos.xyz / lightSpacePos.w;
 	sampleCoord = sampleCoord * 0.5 + 0.5;
 	
-	float bias = max(maxBias * (1.0 - dot(normal, _DirectionalLight.direction)), minBias);	
+	float bias = max(maxBias * (1.0 - dot(normal, -_DirectionalLight.direction)), minBias);	
 
 	float shadowMapDepth = texture(shadowMap, sampleCoord.xy).r;
 	float myDepth = sampleCoord.z - bias;
-
-	
-
-	/*********************************************************************************/
-	float totalShadow = 0;
-	vec2 texelOffset = 1.0 / textureSize(shadowMap, 0);
-	for(int y = -1; y <= 1; y++)
-	{
-		for(int x = -1; x <= 1; x++)
-		{
-			vec2 uv = lightSpacePos.xy + vec2(x * texelOffset.x, y * texelOffset.y);
-
-			//totalShadow += step(texture(shadowMap, uv), myDepth);
-		}
-	}
-
-	totalShadow /= 9.0;
-	/*********************************************************************************/
 
 	return step(shadowMapDepth, myDepth);
 }
@@ -214,29 +197,15 @@ float CalculateShadow(sampler2D shadowMap, vec4 lightSpacePos, vec3 normal, floa
 void main(){ 
 	vec3 lightColor  = vec3(0);
 	vec4 color = texture(_WoodFloor, v_out.UV);
-    vec3 normal = texture(_NormalMap,v_out.UV).rgb;
-    normal = normal * 2.0 - 1.0;
-    normal = normalize(normal);
-	color.r = color.r * _textureIntensity;
+    vec3 normal = v_out.WorldNormal;
 
-	lightColor += CalculatePointLight(_PointLights, normal);
-	lightColor += CalculateDirectionalLights(_DirectionalLight, normal)
-	+ CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
+	normal = normalize(normal);
 
-	//if there is shadow
-	float shadow = CalculateShadow(_ShadowMap, lightSpacePos, normal, _MinBias, _MaxBias);
+	vec3 light = CalculateAmbient(); 
+	vec3 diffuse = CalculateDiffuse(-_DirectionalLight.direction, _DirectionalLight.color, normal);
+	vec3 specular = CalculateBlinnPhongSpecular(-_DirectionalLight.direction, _DirectionalLight.color, _DirectionalLight.intensity, normal);
 
+	light += (specular + diffuse) * (1.0 - CalculateShadow(_ShadowMap, lightSpacePos, normal, _MinBias, _MaxBias));
 
-	vec3 light = CalculateAmbient() + 
-	(CalculateDiffuse(_DirectionalLight.direction, _DirectionalLight.color, normal) + 
-	CalculateBlinnPhongSpecular(_DirectionalLight.direction, 
-	_DirectionalLight.color, _DirectionalLight.intensity, normal)) * 
-	(1.0 - CalculateShadow(_ShadowMap, lightSpacePos, normal, _MinBias, _MaxBias));
-	
-
-	lightColor += shadow;
-	lightColor += light;
-    
-    
-    FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1.0f);
+	FragColor = vec4(light, 1.0f);
 }

@@ -145,9 +145,6 @@ GLuint createTexture(const char* filePath)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	/*glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texture3);*/
-
 
 
 	return texture;
@@ -257,8 +254,9 @@ int main() {
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
 	bool isOn = true;
+	bool isShadowDebugViewOn = true;
 	/********************************Post Processing****************************************************/
-	/*unsigned int frameBufferObject;
+	unsigned int frameBufferObject;
 	unsigned int colorBuffer;
 
 	glGenFramebuffers(1, &frameBufferObject);
@@ -285,13 +283,11 @@ int main() {
 	if (frameBufferObjectStatus != GL_FRAMEBUFFER_COMPLETE)
 	{
 		printf("Frame buffer is not Complete");
-	}*/
+	}
 
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/******************************************************************************************************/
 
-	//float sliderF = 2.0f;
-	//int sliderI = 5;
 	float textureIntensity = 1.0f;
 	const char* postProcess[5] =
 	{
@@ -398,7 +394,7 @@ int main() {
 		ShadowShader.setMat4("_Model", planeTransform.getModelMatrix());
 		planeMesh.draw();		
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
 		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
@@ -409,6 +405,8 @@ int main() {
 		//litShader.setVec3("_LightPos", lightTransform.position);
 		litShader.setInt("_WoodFloor", 0);
 		litShader.setInt("_ShadowMap", 2);
+		glm::mat4 lightViewProj = projection * view;
+		litShader.setMat4("_LightViewProj", lightViewProj);
 
 
 
@@ -489,115 +487,48 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
-		//if (isOn)
-		//{
-		//	////Clearing Buffers
-		//	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//Clearing Buffers
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//	//glActiveTexture(GL_TEXTURE2);
-		//	//glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
-		//}
+		if (isShadowDebugViewOn)
+		{
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, shadowDepthBuffer);
+		}
+
+		else
+		{
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		}
 
 		
 
-		//if (isOn)
-		//{
-		//	//PostProcessShader.use();
+		PostProcessShader.use();
 
-		//	//time = time * speed;
-		//	//PostProcessShader.setInt("_Texture", 2);
-		//	//PostProcessShader.setInt("_Switch", index);
+		time = time * speed;
+		PostProcessShader.setInt("_Texture", 2);
+		PostProcessShader.setInt("_Switch", index);
 
-		//	////Fade to Black
-		//	//PostProcessShader.setFloat("_Time", time);
-		//	//
-		//	////Blur
-		//	//PostProcessShader.setFloat("_Directions", directions);
-		//	//PostProcessShader.setFloat("_Quality", quality);
-		//	//PostProcessShader.setFloat("_Size", size);
+		//Fade to Black
+		PostProcessShader.setFloat("_Time", time);
+			
+		//Blur
+		PostProcessShader.setFloat("_Directions", directions);
+		PostProcessShader.setFloat("_Quality", quality);
+		PostProcessShader.setFloat("_Size", size);
 
-		//	//quadMesh.draw();
-		//}
-
-		//ShadowShader.use();
-		//quadMesh.draw();
-
-		/**********************************/
-		//glCullFace(GL_FRONT);
-		//renderShadowMap();
-		//glCullFace(GL_BACK);
-		//renderShadowMap();
-		/**********************************/
+		quadMesh.draw();
 
 
 		//Draw UI
-
-		/*
-		ImGui::Begin("Material");
-		ImGui::ColorEdit3("Material Color", &material.color.r);
-		ImGui::SliderFloat("Material Ambient K", &material.ambientK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Diffuse K", &material.diffuseK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Specular K", &material.specularK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Shininess", &material.shininess, 2.0f, 512.0f);
-		ImGui::End();
-		*/
 
 		ImGui::Begin("Directional Light");
 		ImGui::DragFloat3("Directional Light Direction", &directionalLight.direction.x);
 		ImGui::SliderFloat("Directional Light Intensity", &directionalLight.intensity, 0.0f, 1.0f);
 		ImGui::ColorEdit3("Directional Light Color", &directionalLight.color.r);
 		ImGui::End();
-
-		/*
-		ImGui::Begin("Point Lights");
-		ImGui::SliderFloat("Point Light Intensity", &pointLights.intensity, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Linear", &pointLights.linearAttenuation, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Quadratic", &pointLights.quadractic, 0.0f, 1.0f);
-		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
-		ImGui::ColorEdit3("Point Light Color", &pointLights.color.r);
-		ImGui::End();
-		*/
-
-		/*
-		ImGui::Begin("Spot Light");
-		ImGui::DragFloat3("Spot Light Position", &spotLight.position.x);
-		ImGui::DragFloat3("Spot Light Direction", &spotLight.direction.x);
-		ImGui::SliderFloat("Spot Light Intensity", &spotLight.intensity, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Spot Light Color", &spotLight.color.r);
-		ImGui::SliderFloat("Spot Light Inner Angle", &spotLight.minAngle, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Outer Angle", &spotLight.maxAngle, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Angle Falloff", &spotLight.angleFallOff, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Linear", &spotLight.linearAttenuation, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
-		ImGui::End();
-		*/
-
-		/*
-		ImGui::Begin("Texture");
-		ImGui::SliderFloat("Normal Map Intensity", &textureIntensity, 0, 1);
-		ImGui::End();
-		*/
-
-		//Draw UI
-		/*ImGui::Begin("Post Process");
-
-		ImGui::Checkbox("Switch", &isOn);
-		ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
-
-		if (index == 2)
-		{
-			ImGui::SliderFloat("Speed", &speed, 0, 20);
-		}
-
-		if (index == 3)
-		{
-			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
-			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
-			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
-		}
-
-		ImGui::End();*/
 
 		ImGui::Begin("Shadow Map");
 		ImGui::SliderFloat("Projection Left", &projectLeft, -50, 0);
@@ -606,8 +537,9 @@ int main() {
 		ImGui::SliderFloat("Projection Top", &projectTop, 0, 50);
 		ImGui::SliderFloat("Projection Near", &projectNear, -10, 10);
 		ImGui::SliderFloat("Projection Far", &projectFar, 0, 10000);
-		ImGui::SliderFloat("Mininum Bias", &minBias, 0, 5);
-		ImGui::SliderFloat("Maxium Bias", &maxBias, 0, 5);
+		ImGui::SliderFloat("Mininum Bias", &minBias, 0, 1);
+		ImGui::SliderFloat("Maxium Bias", &maxBias, 0, 1);
+		ImGui::Checkbox("ShadowMap View", &isShadowDebugViewOn);
 		ImGui::End();
 
 		ImGui::Render();

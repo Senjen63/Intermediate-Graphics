@@ -28,7 +28,7 @@ void main(){
         //FragColor = vec4(color.x, color.y, color.z, 1);
         //FragColor = vec4(UV.x, UV.y, 0, 1);
 
-        FragColor = vec4(texture(_Texture,UV).rrr, 1);
+        FragColor = vec4(texture(_Texture,UV).rgb, 1);
 
     }
     

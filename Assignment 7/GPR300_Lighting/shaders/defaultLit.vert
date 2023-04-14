@@ -11,9 +11,11 @@ uniform mat4 _LightViewProj;
 
 out vec4 lightSpacePos;
 
+
 out struct Vertex
 {
 	vec3 WorldPosition;    
+    vec3 WorldNormal;
 	vec2 UV;
 	mat3 TBN;
 }  v_out;
@@ -45,9 +47,9 @@ void main(){
 
     v_out.WorldPosition = vec3(_Model * vec4(vPos,1));
 
+    v_out.WorldNormal = normalMatrix * vNormal; 
+
     lightSpacePos = _LightViewProj * _Model * vec4(vPos, 1);
 
     gl_Position = _Projection * _View * _Model * vec4(vPos,1);
-
-    //gl_Position = lightSpacePos;
 }
