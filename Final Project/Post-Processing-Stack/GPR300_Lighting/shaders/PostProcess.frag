@@ -22,6 +22,8 @@ uniform float _Directions;
 uniform float _Quality;
 uniform float _Size;
 
+//Screen Space Reflection Variables
+
 
 
 void Normal() {
@@ -31,6 +33,7 @@ void Normal() {
     FragColor = vec4(color.x, color.y, color.z, 1);
 }
 
+// referenced by Shadertoy(https://www.shadertoy.com/)
 //White Function
 void White() {
     
@@ -69,38 +72,18 @@ void Blur() {
 
 //Sine Threshold Effect Function
 void SineThresholdEffect() {
-    vec2 uv;
-
-    uv /= UV.xy;
-
-    //float r = texture(_Texture,UV).r;
-    float r = texture(_Texture,uv).r;
-    //float c = step(0.0f, sin(UV.x * 10.0f + r * 40.0f));
-    float c = step(0.0f, sin(uv.x * 10.0f + r * 40.0f));
-
+    
+    float r = texture(_Texture,UV).r;
+    float c = step(0.0f, sin(UV.x * 10.0f + r * 40.0f));
+    
     FragColor = vec4(vec3(c), 1);
 }
 
-/**************Anti-aliasing****************/
-vec2 Saturate(vec2 x) {
-    return x;
-}
+/**************Screen Space Reflection****************/
 
-vec2 Magnify(vec2 uv) {
-    return uv;
-}
-
-vec2 Quantize(vec2 uv) {
-    return uv;
-}
-
-void Anti_Aliasing() {
-
-}
-/*******************************************/
+/*****************************************************/
 
 void main() { 
-    
     //None
     if(_Switch == 0) {
         Normal();
@@ -128,6 +111,6 @@ void main() {
 
     //Anti-aliasing
     else if(_Switch == 5) {
-        Anti_Aliasing();
+        
     }
 }

@@ -96,7 +96,7 @@ struct Material
 	float shininess = 64.0f;
 };
 
-struct
+
 
 
 
@@ -288,9 +288,9 @@ int main() {
 	/***************************************************************************************/
 
 	float textureIntensity = 1.0f;
-	const char* postProcess[5] =
+	const char* postProcess[6] =
 	{
-		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect"
+		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect", "Anti-aliasing"
 	};
 	int index = 0;
 
@@ -303,6 +303,12 @@ int main() {
 	float quality = 3.0;
 	float size = 0.1;
 	/*****************************************/
+
+	/**************Screen Space Reflection****************/
+	float maxDistance = 15.0;
+	float step = 0.05;
+	float thickness = 0.0006;
+	/*****************************************************/
 	
 	int controller = 1;
 	
@@ -423,6 +429,8 @@ int main() {
 			PostProcessShader.setFloat("_Directions", directions);
 			PostProcessShader.setFloat("_Quality", quality);
 			PostProcessShader.setFloat("_Size", size);
+
+			
 
 			quadMesh.draw();
 		}
