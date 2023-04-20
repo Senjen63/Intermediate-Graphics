@@ -254,7 +254,7 @@ int main() {
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
 	bool isOn = true;
-	/************************************************************************************/
+	/***********************************Blur*************************************************/
 	unsigned int frameBufferObject;
 	unsigned int colorBuffer;
 
@@ -285,12 +285,13 @@ int main() {
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	/***************************************************************************************/
+	/*******************************************************************************************/
 
 	float textureIntensity = 1.0f;
-	const char* postProcess[6] =
+	const char* postProcess[11] =
 	{
-		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect", "Anti-aliasing"
+		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect", "White + Fade to Black",
+		"test 1", "test 2", "test 3", "test 4", "test 5"
 	};
 	int index = 0;
 
@@ -449,14 +450,19 @@ int main() {
 		{
 			ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
 		}
+
+		else if (controller == 2)
+		{
+
+		}
 		
 
-		if (index == 2)
+		if (index == 2 || index == 5 || index == 6 || index == 7)
 		{
 			ImGui::SliderFloat("Speed", &speed, 0, 20);
 		}
 
-		if (index == 3)
+		if (index == 3 || index == 9 || index == 10)
 		{
 			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
 			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
