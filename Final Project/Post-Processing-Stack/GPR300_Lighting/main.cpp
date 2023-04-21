@@ -246,10 +246,10 @@ int main() {
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 
 	GLuint texture = createTexture(woodFloorFile);
-	FrameBuffer blur = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-	FrameBuffer FadeToBlack = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-	FrameBuffer SineThresholdEffect = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-	FrameBuffer White = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+	//FrameBuffer blur = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+	//FrameBuffer FadeToBlack = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+	//FrameBuffer SineThresholdEffect = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+	//FrameBuffer White = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//GLuint frameBuffer = blur;
 	
@@ -306,6 +306,39 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
+	/************************************************************************************/
+	unsigned int frameBufferObject;
+	unsigned int colorBuffer;
+
+	glGenFramebuffers(1, &frameBufferObject);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+
+
+
+	glGenTextures(1, &colorBuffer);
+	glBindTexture(GL_TEXTURE_2D, colorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+
+	unsigned int renderBufferObject;
+	glGenRenderbuffers(1, &renderBufferObject);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
+
+	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (!GL_FRAMEBUFFER_COMPLETE)
+	{
+
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	/***************************************************************************************/
+
 	float textureIntensity = 1.0f;
 	const char* postProcess[11] =
 	{
@@ -343,17 +376,21 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
 		
-		for (int i = 0; i < index; i++)
-		{
-			uint16_t frameBuffer;
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}
+		//for (int i = 0; i < index; i++)
+		//{
+		//	uint16_t frameBuffer;
+		//	//Clearing Buffers
+		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//	glActiveTexture(GL_TEXTURE2);
+		//	glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		//}
 
 		//for(int i = 0; i < numEffects; i++)
 		//{
@@ -381,11 +418,11 @@ int main() {
 		// sample from framebuffer A
 		//fullscreen (quad.draw)
 
-		glBindFramebuffer(GL_FRAMEBUFFER, blur.frameBufferID);
+		/*glBindFramebuffer(GL_FRAMEBUFFER, blur.frameBufferID);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, texture);*/
 
 		//Draw
 		litShader.use();
@@ -453,6 +490,12 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
+		//Clearing Buffers
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, colorBuffer);
+
 		/*if (isOn)
 		{
 			//Clearing Buffers
@@ -461,15 +504,15 @@ int main() {
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, colorBuffer);
 		}*/
-		if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//if (isOn)
+		//{
+		//	//Clearing Buffers
+		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, blurColorBuffer);
-		}
+		//	glActiveTexture(GL_TEXTURE3);
+		//	glBindTexture(GL_TEXTURE_2D, blurColorBuffer);
+		//}
 		/*if (isOn)
 		{
 			//Clearing Buffers
@@ -515,18 +558,6 @@ int main() {
 
 		//Draw UI
 		ImGui::Begin("Post Process");
-
-		ImGui::SliderInt("Controller", &controller, 1, 2);
-
-		if (controller == 1)
-		{
-			ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
-		}
-
-		else if (controller == 2)
-		{
-
-		}
 		
 
 		if (index == 2 || index == 5 || index == 6 || index == 7)
