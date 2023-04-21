@@ -96,7 +96,14 @@ struct Material
 	float shininess = 64.0f;
 };
 
-
+struct FrameBuffer
+{
+	unsigned int frameBufferID;
+	unsigned int colorTextureID;
+	unsigned int renderBufferID;
+	unsigned int width;
+	unsigned int height;
+};
 
 
 
@@ -104,6 +111,42 @@ Material material;
 DirectionalLight directionalLight;
 PointLights pointLights;
 SpotLight spotLight;
+
+FrameBuffer CreateFrameBuffer(unsigned int width, unsigned int height)
+{
+	FrameBuffer buffer{};
+	
+
+	glGenFramebuffers(1, &buffer.frameBufferID);
+	glBindFramebuffer(GL_FRAMEBUFFER, buffer.frameBufferID);
+	glGenTextures(1, &buffer.colorTextureID);
+	glBindTexture(GL_TEXTURE_2D, buffer.colorTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.colorTextureID, 0);
+
+	unsigned int renderBufferObject;
+
+	glGenRenderbuffers(1, &renderBufferObject);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
+
+	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (frameBufferObjectStatus != GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("Frame buffer is not Complete");
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	buffer.width = width;
+	buffer.height = height;
+
+	return buffer;
+}
 
 GLuint createTexture(const char* filePath)
 {
@@ -191,6 +234,10 @@ int main() {
 	Shader litShader("shaders/defaultLit.vert", "shaders/defaultLit.frag");
 
 	Shader PostProcessShader("shaders/PostProcess.vert", "shaders/PostProcess.frag");
+	Shader BlurShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Blur.frag");
+	Shader FadeToBlackShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Fade_To_Black.frag");
+	Shader SineThresholdEffectShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Sine_Threshold_Effect.frag");
+	Shader WhiteShader("shaders/PostProcess.vert", "PostProcessing(Effect)/White.frag");
 
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
@@ -199,6 +246,12 @@ int main() {
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 
 	GLuint texture = createTexture(woodFloorFile);
+	FrameBuffer blur = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+	FrameBuffer FadeToBlack = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+	FrameBuffer SineThresholdEffect = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+	FrameBuffer White = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	//GLuint frameBuffer = blur;
 	
 
 	ew::MeshData cubeMeshData;
@@ -253,40 +306,6 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	bool isOn = true;
-	/***********************************Blur*************************************************/
-	unsigned int frameBufferObject;
-	unsigned int colorBuffer;
-
-	glGenFramebuffers(1, &frameBufferObject);
-	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-
-
-
-	glGenTextures(1, &colorBuffer);
-	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
-
-	unsigned int renderBufferObject;
-	glGenRenderbuffers(1, &renderBufferObject);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
-
-	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-	if (!GL_FRAMEBUFFER_COMPLETE)
-	{
-		
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	/*******************************************************************************************/
-
 	float textureIntensity = 1.0f;
 	const char* postProcess[11] =
 	{
@@ -311,9 +330,6 @@ int main() {
 	float thickness = 0.0006;
 	/*****************************************************/
 	
-	int controller = 1;
-	
-
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -327,12 +343,46 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		if (isOn)
+		
+		
+		for (int i = 0; i < index; i++)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+			uint16_t frameBuffer;
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, colorBuffer);
 		}
 
+		//for(int i = 0; i < numEffects; i++)
+		//{
+		//bindFramebuffer(fb)
+		// effect.use
+		// sample from // choose fb to sample from
+		// fullscreen (quad.draw
+		//}
+
+		//bind framrbuffer A
+		//drawScene();
+		
+		//bind framrbuffer B
+		//use effect shader (effectshader.use())
+		//sample from framebufferA
+		//fullscreen (quad.draw)
+
+		//bindFramebuffer(0) ((if more than two) bind Framebuffer A)
+		//use another effect shader (effectshader.use())
+		//sample from framebufferB
+		//fullscreen (quad.draw)
+
+		//bind FramebufferB (if at the end Bind Framebuffer 0)
+		//use another effect shader (effectshader.use())
+		// sample from framebuffer A
+		//fullscreen (quad.draw)
+
+		glBindFramebuffer(GL_FRAMEBUFFER, blur.frameBufferID);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -403,47 +453,69 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
+		/*if (isOn)
+		{
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		}*/
 		if (isOn)
 		{
 			//Clearing Buffers
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, blurColorBuffer);
+		}
+		/*if (isOn)
+		{
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}
-
-		
-
-		if (isOn)
+		}*/
+		/*if (isOn)
 		{
-			PostProcessShader.use();
-
-			time = time * speed;
-			PostProcessShader.setInt("_Texture", 2);
-			PostProcessShader.setInt("_Switch", index);
-
-			//Fade to Black
-			PostProcessShader.setFloat("_Time", time);
-			
-			//Blur
-			PostProcessShader.setFloat("_Directions", directions);
-			PostProcessShader.setFloat("_Quality", quality);
-			PostProcessShader.setFloat("_Size", size);
-
-			
-
-			quadMesh.draw();
-		}
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		}*/
+		/*if (isOn)
+		{
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		}*/
 
 		
 
-
+		PostProcessShader.use();
+		time = time * speed;
+		PostProcessShader.setInt("_Texture", 2);
+		quadMesh.draw();
+		
+		/*if (isOn)
+		{
+			BlurShader.use();
+			BlurShader.setInt("_Texture", 2);
+			//Blur
+			BlurShader.setFloat("_Directions", directions);
+			BlurShader.setFloat("_Quality", quality);
+			BlurShader.setFloat("_Size", size);
+			quadMesh.draw();
+		}*/
 
 		//Draw UI
 		ImGui::Begin("Post Process");
 
-		ImGui::Checkbox("Switch", &isOn);
 		ImGui::SliderInt("Controller", &controller, 1, 2);
 
 		if (controller == 1)
@@ -462,12 +534,12 @@ int main() {
 			ImGui::SliderFloat("Speed", &speed, 0, 20);
 		}
 
-		if (index == 3 || index == 9 || index == 10)
-		{
+		//if (index == 3 || index == 9 || index == 10)
+		//{
 			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
 			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
 			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
-		}
+		//}
 		
 
 		ImGui::End();
