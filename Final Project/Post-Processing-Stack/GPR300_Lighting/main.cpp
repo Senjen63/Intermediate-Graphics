@@ -198,6 +198,9 @@ GLuint createTexture(const char* filePath)
 	return texture;
 }
 
+
+//referencing https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/7.bloom/bloom.cpp
+
 int main() {
 	if (!glfwInit()) {
 		printf("glfw failed to init");
@@ -368,6 +371,35 @@ int main() {
 	bool isFadeToBlack = false;
 	bool isSineThresholdEffect = false;
 	bool isWhite = false;
+
+	/**********************************Ping pong**************************************/
+	unsigned int pingPongFrameBuffer[4];
+	unsigned int pingPongColorBuffer[4];
+
+	glGenFramebuffers(4, pingPongFrameBuffer);
+	glGenTextures(4, pingPongColorBuffer);
+
+	for (unsigned int i = 0; i < 4; i++)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, pingPongFrameBuffer[i]);
+		glBindTexture(GL_TEXTURE_2D, pingPongColorBuffer[i]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingPongColorBuffer[i], 0);
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		{
+			printf("Frame buffer is not Complete");
+		}
+	}
+
+	
+
+
+	/*********************************************************************************/
 	
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -423,12 +455,6 @@ int main() {
 		//use another effect shader (effectshader.use())
 		// sample from framebuffer A
 		//fullscreen (quad.draw)
-
-		/*glBindFramebuffer(GL_FRAMEBUFFER, blur.frameBufferID);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);*/
 
 		if (isNormal)
 		{
@@ -521,53 +547,16 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
+		WhiteShader.use();
+		WhiteShader.setInt("_Texture", 0);
+		BlurShader.use();
+		BlurShader.setInt("_Texture", 0);
+
 		//Clearing Buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, colorBuffer);
-
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
-		//if (isOn)
-		//{
-		//	//Clearing Buffers
-		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//	glActiveTexture(GL_TEXTURE3);
-		//	glBindTexture(GL_TEXTURE_2D, blurColorBuffer);
-		//}
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
 
 		
 
@@ -575,17 +564,6 @@ int main() {
 		time = time * speed;
 		PostProcessShader.setInt("_Texture", 2);
 		quadMesh.draw();
-		
-		/*if (isOn)
-		{
-			BlurShader.use();
-			BlurShader.setInt("_Texture", 2);
-			//Blur
-			BlurShader.setFloat("_Directions", directions);
-			BlurShader.setFloat("_Quality", quality);
-			BlurShader.setFloat("_Size", size);
-			quadMesh.draw();
-		}*/
 
 		//Draw UI
 		ImGui::Begin("Post Process Stack");
@@ -595,19 +573,6 @@ int main() {
 		ImGui::Checkbox("Fade To Black", &isFadeToBlack);
 		ImGui::Checkbox("Sine Threshold Effect", &isSineThresholdEffect);
 		ImGui::Checkbox("White", &isWhite);
-		
-
-		/*if (index == 2 || index == 5 || index == 6 || index == 7)
-		{
-			ImGui::SliderFloat("Speed", &speed, 0, 20);
-		}*/
-
-		//if (index == 3 || index == 9 || index == 10)
-		//{
-			//ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
-			//ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
-			//ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
-		//}
 		
 
 		ImGui::End();
