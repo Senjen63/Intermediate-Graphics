@@ -107,6 +107,7 @@ struct FrameBuffer
 
 
 
+
 Material material;
 DirectionalLight directionalLight;
 PointLights pointLights;
@@ -115,7 +116,7 @@ SpotLight spotLight;
 FrameBuffer CreateFrameBuffer(unsigned int width, unsigned int height)
 {
 	FrameBuffer buffer{};
-	
+
 
 	glGenFramebuffers(1, &buffer.frameBufferID);
 	glBindFramebuffer(GL_FRAMEBUFFER, buffer.frameBufferID);
@@ -246,12 +247,6 @@ int main() {
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 
 	GLuint texture = createTexture(woodFloorFile);
-	//FrameBuffer blur = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-	//FrameBuffer FadeToBlack = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-	//FrameBuffer SineThresholdEffect = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-	//FrameBuffer White = CreateFrameBuffer(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-	//GLuint frameBuffer = blur;
 	
 
 	ew::MeshData cubeMeshData;
@@ -306,6 +301,7 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
+	bool isOn = true;
 	/************************************************************************************/
 	unsigned int frameBufferObject;
 	unsigned int colorBuffer;
@@ -333,17 +329,18 @@ int main() {
 
 	if (!GL_FRAMEBUFFER_COMPLETE)
 	{
-
+		
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/***************************************************************************************/
 
+	//float sliderF = 2.0f;
+	//int sliderI = 5;
 	float textureIntensity = 1.0f;
-	const char* postProcess[11] =
+	const char* postProcess[5] =
 	{
-		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect", "White + Fade to Black",
-		"test 1", "test 2", "test 3", "test 4", "test 5"
+		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect"
 	};
 	int index = 0;
 
@@ -356,19 +353,9 @@ int main() {
 	float quality = 3.0;
 	float size = 0.1;
 	/*****************************************/
-
-	/**************Screen Space Reflection****************/
-	float maxDistance = 15.0;
-	float step = 0.05;
-	float thickness = 0.0006;
-	/*****************************************************/
-
-	bool isNormal = true;
-	bool isBlur = false;
-	bool isFadeToBlack = false;
-	bool isSineThresholdEffect = false;
-	bool isWhite = false;
 	
+	
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -382,78 +369,15 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (isOn)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
-		
-		//for (int i = 0; i < index; i++)
-		//{
-		//	uint16_t frameBuffer;
-		//	//Clearing Buffers
-		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//	glActiveTexture(GL_TEXTURE2);
-		//	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		//}
-
-		//for(int i = 0; i < numEffects; i++)
-		//{
-		//bindFramebuffer(fb)
-		// effect.use
-		// sample from // choose fb to sample from
-		// fullscreen (quad.draw
-		//}
-
-		//bind framrbuffer A
-		//drawScene();
-		
-		//bind framrbuffer B
-		//use effect shader (effectshader.use())
-		//sample from framebufferA
-		//fullscreen (quad.draw)
-
-		//bindFramebuffer(0) ((if more than two) bind Framebuffer A)
-		//use another effect shader (effectshader.use())
-		//sample from framebufferB
-		//fullscreen (quad.draw)
-
-		//bind FramebufferB (if at the end Bind Framebuffer 0)
-		//use another effect shader (effectshader.use())
-		// sample from framebuffer A
-		//fullscreen (quad.draw)
-
-		/*glBindFramebuffer(GL_FRAMEBUFFER, blur.frameBufferID);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);*/
-
-		if (isNormal)
-		{
-
-		}
-
-		if (isBlur)
-		{
-
-		}
-
-		if (isFadeToBlack)
-		{
-
-		}
-
-		if (isSineThresholdEffect)
-		{
-
-		}
-
-		if (isWhite)
-		{
-
-		}
 
 		//Draw
 		litShader.use();
@@ -506,7 +430,10 @@ int main() {
 
 		//Draw plane
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		planeMesh.draw();	
+		planeMesh.draw();
+
+		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
+		
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -521,93 +448,98 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
-		//Clearing Buffers
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		if (isOn)
+		{
+			//Clearing Buffers
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
-		//if (isOn)
-		//{
-		//	//Clearing Buffers
-		//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//	glActiveTexture(GL_TEXTURE3);
-		//	glBindTexture(GL_TEXTURE_2D, blurColorBuffer);
-		//}
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
-		/*if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}*/
+		}
 
 		
 
-		PostProcessShader.use();
-		time = time * speed;
-		PostProcessShader.setInt("_Texture", 2);
-		quadMesh.draw();
-		
-		/*if (isOn)
+		if (isOn)
 		{
-			BlurShader.use();
-			BlurShader.setInt("_Texture", 2);
+			PostProcessShader.use();
+
+			time = time * speed;
+			PostProcessShader.setInt("_Texture", 2);
+			PostProcessShader.setInt("_Switch", index);
+
+			//Fade to Black
+			PostProcessShader.setFloat("_Time", time);
+			
 			//Blur
-			BlurShader.setFloat("_Directions", directions);
-			BlurShader.setFloat("_Quality", quality);
-			BlurShader.setFloat("_Size", size);
+			PostProcessShader.setFloat("_Directions", directions);
+			PostProcessShader.setFloat("_Quality", quality);
+			PostProcessShader.setFloat("_Size", size);
+
 			quadMesh.draw();
-		}*/
+		}
+
+		
+
+
 
 		//Draw UI
-		ImGui::Begin("Post Process Stack");
+		ImGui::Begin("Material");
+		ImGui::ColorEdit3("Material Color", &material.color.r);
+		ImGui::SliderFloat("Material Ambient K", &material.ambientK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Material Diffuse K", &material.diffuseK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Material Specular K", &material.specularK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Material Shininess", &material.shininess, 2.0f, 512.0f);
+		ImGui::End();
 
-		ImGui::Checkbox("Normal", &isNormal);
-		ImGui::Checkbox("Blur", &isBlur);
-		ImGui::Checkbox("Fade To Black", &isFadeToBlack);
-		ImGui::Checkbox("Sine Threshold Effect", &isSineThresholdEffect);
-		ImGui::Checkbox("White", &isWhite);
+		ImGui::Begin("Directional Light");
+		ImGui::DragFloat3("Directional Light Direction", &directionalLight.direction.x);
+		ImGui::SliderFloat("Directional Light Intensity", &directionalLight.intensity, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Directional Light Color", &directionalLight.color.r);
+		ImGui::End();
+
+		ImGui::Begin("Point Lights");
+		ImGui::SliderFloat("Point Light Intensity", &pointLights.intensity, 0.0f, 1.0f);
+		ImGui::SliderFloat("Point Light Linear", &pointLights.linearAttenuation, 0.0f, 1.0f);
+		ImGui::SliderFloat("Point Light Quadratic", &pointLights.quadractic, 0.0f, 1.0f);
+		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
+		ImGui::ColorEdit3("Point Light Color", &pointLights.color.r);
+		ImGui::End();
+
+		ImGui::Begin("Spot Light");
+		ImGui::DragFloat3("Spot Light Position", &spotLight.position.x);
+		ImGui::DragFloat3("Spot Light Direction", &spotLight.direction.x);
+		ImGui::SliderFloat("Spot Light Intensity", &spotLight.intensity, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Spot Light Color", &spotLight.color.r);
+		ImGui::SliderFloat("Spot Light Inner Angle", &spotLight.minAngle, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Outer Angle", &spotLight.maxAngle, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Angle Falloff", &spotLight.angleFallOff, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Linear", &spotLight.linearAttenuation, 0.0f, 100.0f);
+		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
+		ImGui::End();
+
+		ImGui::Begin("Texture");
+		ImGui::SliderFloat("Normal Map Intensity", &textureIntensity, 0, 1);
+		ImGui::End();
 		
 
-		/*if (index == 2 || index == 5 || index == 6 || index == 7)
+		//Draw UI
+		ImGui::Begin("Post Process");
+
+		ImGui::Checkbox("Switch", &isOn);
+		ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
+
+		if (index == 2)
 		{
 			ImGui::SliderFloat("Speed", &speed, 0, 20);
-		}*/
+		}
 
-		//if (index == 3 || index == 9 || index == 10)
-		//{
-			//ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
-			//ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
-			//ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
-		//}
+		if (index == 3)
+		{
+			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
+			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
+			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
+		}
 		
 
 		ImGui::End();
