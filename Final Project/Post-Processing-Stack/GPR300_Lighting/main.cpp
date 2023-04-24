@@ -362,6 +362,12 @@ int main() {
 	float step = 0.05;
 	float thickness = 0.0006;
 	/*****************************************************/
+
+	bool isNormal = true;
+	bool isBlur = false;
+	bool isFadeToBlack = false;
+	bool isSineThresholdEffect = false;
+	bool isWhite = false;
 	
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -423,6 +429,31 @@ int main() {
 		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);*/
+
+		if (isNormal)
+		{
+
+		}
+
+		if (isBlur)
+		{
+
+		}
+
+		if (isFadeToBlack)
+		{
+
+		}
+
+		if (isSineThresholdEffect)
+		{
+
+		}
+
+		if (isWhite)
+		{
+
+		}
 
 		//Draw
 		litShader.use();
@@ -557,19 +588,25 @@ int main() {
 		}*/
 
 		//Draw UI
-		ImGui::Begin("Post Process");
+		ImGui::Begin("Post Process Stack");
+
+		ImGui::Checkbox("Normal", &isNormal);
+		ImGui::Checkbox("Blur", &isBlur);
+		ImGui::Checkbox("Fade To Black", &isFadeToBlack);
+		ImGui::Checkbox("Sine Threshold Effect", &isSineThresholdEffect);
+		ImGui::Checkbox("White", &isWhite);
 		
 
-		if (index == 2 || index == 5 || index == 6 || index == 7)
+		/*if (index == 2 || index == 5 || index == 6 || index == 7)
 		{
 			ImGui::SliderFloat("Speed", &speed, 0, 20);
-		}
+		}*/
 
 		//if (index == 3 || index == 9 || index == 10)
 		//{
-			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
-			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
-			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
+			//ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
+			//ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
+			//ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
 		//}
 		
 
