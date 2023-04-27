@@ -14,17 +14,11 @@ uniform float _Time;
 
 void main(){ 
 
-	vec2 uvC = gl_FragCoord.xy / UV.xy;
-
-    uvC += 1.0;
-
-    vec4 frame = texture(_Texture, vec2(uvC.x, uvC.y));
-
+	vec4 frame = texture(_Texture, UV);
     
+    vec2 center = vec2(0.5);
     
-    vec2 center = UV.xy / 2.0;
-    
-    float d = distance(gl_FragCoord.xy, center);
+    float d = distance(UV, center);
 
     float intensity = max((d - _Radius) / (2.0 + _Blur * (1.0 + sin(_Time * _Speed))), 0.0);
 

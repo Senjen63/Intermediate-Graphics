@@ -108,16 +108,17 @@ struct FrameBuffer
 struct TransitionModifier
 {
 	float speed = 2.5;
-	float radius = 100.0;
+	float radius = 0.0;
 	float blur = 200.0;
 
 };
 
 struct TransitionStyle
 {
-	bool isBurn = true;
+	bool isBurn = false;
 	bool isZoomBlur = false;
 	bool isSwap = false;
+	bool isLooney = true;
 };
 
 
@@ -455,51 +456,69 @@ int main() {
 
 		
 		/***********************************************/
-		/*TransitionBurnShader.use();
-		TransitionBurnShader.setInt("_Texture", 2);
 
-		time = time * transitionM.speed;
+		if (transitionS.isLooney && !transitionS.isBurn)
+		{
+			TransitionLooneyShader.use();
+			TransitionLooneyShader.setInt("_Texture", 2);
 
-		TransitionBurnShader.setFloat("_Time", time);*/
+			TransitionLooneyShader.setFloat("_Time", time);
+			TransitionLooneyShader.setFloat("_Speed", transitionM.speed);
+			TransitionLooneyShader.setFloat("_Blur", transitionM.blur);
+			TransitionLooneyShader.setFloat("_Radius", transitionM.radius);
 
-		TransitionLooneyShader.use();
-		TransitionLooneyShader.setInt("_Texture", 2);
+			quadMesh.draw();
+		}
 
-		TransitionLooneyShader.setFloat("_Time", time);
-		TransitionLooneyShader.setFloat("_Speed", transitionM.speed);
-		TransitionLooneyShader.setFloat("_Blur", transitionM.blur);
-		TransitionLooneyShader.setFloat("_Radius", transitionM.radius);
+		else if (transitionS.isBurn && !transitionS.isLooney)
+		{
+			TransitionBurnShader.use();
+			TransitionBurnShader.setInt("_Texture", 2);
+
+			time = time * transitionM.speed;
+
+			TransitionBurnShader.setFloat("_Time", time);
+
+			quadMesh.draw();
+		}
+		
+		
+
+		
 
 
-		quadMesh.draw();
+		//quadMesh.draw();
 		/*************************************************/
 
 		//Draw UI
 		ImGui::Begin("Transitioning style");
 
 		ImGui::Checkbox("Burning", &transitionS.isBurn);
+		ImGui::Checkbox("Circle Reveal", &transitionS.isLooney);
 
 		ImGui::End();
 
-		/*if (transitionS.isBurn)
+		if (transitionS.isLooney && !transitionS.isBurn)
 		{
-			ImGui::Begin("Burning Modifier");
+			ImGui::Begin("Circle Reveal Modifier");
 
 			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
-
-			ImGui::End();
-		}*/
-
-		if (transitionS.isBurn)
-		{
-			ImGui::Begin("Burning Modifier");
-
-			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
-			ImGui::SliderFloat("Blur", &transitionM.blur, 0.0, 200.0);
-			ImGui::SliderFloat("Radius", &transitionM.radius, 0.0, 100.0);
+			ImGui::SliderFloat("Blur", &transitionM.blur, 0.0, 1000.0);
+			ImGui::SliderFloat("Radius", &transitionM.radius, -1.0, 1.0);
 
 			ImGui::End();
 		}
+
+		else if (transitionS.isBurn && !transitionS.isLooney)
+		{
+			ImGui::Begin("Burning Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+
+			ImGui::End();
+		}
+
+		
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
