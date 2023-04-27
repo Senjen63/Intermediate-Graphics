@@ -105,6 +105,20 @@ struct FrameBuffer
 	unsigned int height;
 };
 
+struct TransitionModifier
+{
+	float speed = 2.5;
+};
+
+struct TransitionStyle
+{
+	bool isBurn = true;
+	bool isZoomBlur = false;
+	bool isSwap = false;
+};
+
+
+
 
 
 
@@ -112,6 +126,8 @@ Material material;
 DirectionalLight directionalLight;
 PointLights pointLights;
 SpotLight spotLight;
+TransitionModifier transitionM;
+TransitionStyle transitionS;
 
 FrameBuffer CreateFrameBuffer(unsigned int width, unsigned int height)
 {
@@ -234,7 +250,7 @@ int main() {
 	//Used to draw shapes. This is the shader you will be completing.
 	Shader litShader("shaders/defaultLit.vert", "shaders/defaultLit.frag");
 
-	Shader PostProcessShader("shaders/Transitioning.vert", "shaders/Transitioning.frag");
+	Shader TransitionShader("shaders/Transitioning.vert", "shaders/Transitioning.frag");
 	//Shader BlurShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Blur.frag");
 	//Shader FadeToBlackShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Fade_To_Black.frag");
 	//Shader SineThresholdEffectShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Sine_Threshold_Effect.frag");
@@ -357,6 +373,8 @@ int main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
+		
+
 		//Draw
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
@@ -433,16 +451,32 @@ int main() {
 
 		
 		/***********************************************/
-		PostProcessShader.use();
-		PostProcessShader.setInt("_Texture", 2);
+		TransitionShader.use();
+		TransitionShader.setInt("_Texture", 2);
+
+		time = time * transitionM.speed;
+
+		TransitionShader.setFloat("_Time", time);
+
 
 		quadMesh.draw();
 		/*************************************************/
 
 		//Draw UI
 		ImGui::Begin("Transitioning style");
-		
+
+		ImGui::Checkbox("Burning", &transitionS.isBurn);
+
 		ImGui::End();
+
+		if (transitionS.isBurn)
+		{
+			ImGui::Begin("Burning Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+
+			ImGui::End();
+		}
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
