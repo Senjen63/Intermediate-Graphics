@@ -91,7 +91,7 @@ struct SpotLight
 
 struct Material
 {
-	glm::vec3 color = glm::vec3(1, 0, 0);
+	glm::vec3 color = glm::vec3(1, 1, 1);
 	float ambientK = 0.25f, diffuseK = 0.5f, specularK = 0.5f; //(0 - 1)
 	float shininess = 64.0f;
 };
@@ -234,11 +234,11 @@ int main() {
 	//Used to draw shapes. This is the shader you will be completing.
 	Shader litShader("shaders/defaultLit.vert", "shaders/defaultLit.frag");
 
-	Shader PostProcessShader("shaders/PostProcess.vert", "shaders/PostProcess.frag");
-	Shader BlurShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Blur.frag");
-	Shader FadeToBlackShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Fade_To_Black.frag");
-	Shader SineThresholdEffectShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Sine_Threshold_Effect.frag");
-	Shader WhiteShader("shaders/PostProcess.vert", "PostProcessing(Effect)/White.frag");
+	Shader PostProcessShader("shaders/Transitioning.vert", "shaders/Transitioning.frag");
+	//Shader BlurShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Blur.frag");
+	//Shader FadeToBlackShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Fade_To_Black.frag");
+	//Shader SineThresholdEffectShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Sine_Threshold_Effect.frag");
+	//Shader WhiteShader("shaders/PostProcess.vert", "PostProcessing(Effect)/White.frag");
 
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
@@ -309,8 +309,6 @@ int main() {
 	glGenFramebuffers(1, &frameBufferObject);
 	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
 
-
-
 	glGenTextures(1, &colorBuffer);
 	glBindTexture(GL_TEXTURE_2D, colorBuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -327,34 +325,15 @@ int main() {
 
 	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
-	if (!GL_FRAMEBUFFER_COMPLETE)
+	if (frameBufferObjectStatus != GL_FRAMEBUFFER_COMPLETE)
 	{
-		
+		printf("Frame buffer is not Complete");
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/***************************************************************************************/
 
-	//float sliderF = 2.0f;
-	//int sliderI = 5;
 	float textureIntensity = 1.0f;
-	const char* postProcess[5] =
-	{
-		"None", "White", "Fade to Black", "Blur", "Sine Threshold Effect"
-	};
-	int index = 0;
-
-	/********Fade to Black Controller*********/
-	float speed = 1.0f;
-	/*****************************************/
-
-	/**************Blur Controller************/
-	float directions = 16.0f;
-	float quality = 3.0;
-	float size = 0.1;
-	/*****************************************/
-	
-	
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -369,13 +348,12 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
-		if (isOn)
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		}
+		/*****************************************************/
+		glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		/*****************************************************/
 
-		
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -383,7 +361,6 @@ int main() {
 		litShader.use();
 		litShader.setMat4("_Projection", camera.getProjectionMatrix());
 		litShader.setMat4("_View", camera.getViewMatrix());
-		//litShader.setVec3("_LightPos", lightTransform.position);
 		litShader.setInt("_WoodFloor", 0);
 		litShader.setInt("_Brick", 1);
 
@@ -430,10 +407,7 @@ int main() {
 
 		//Draw plane
 		litShader.setMat4("_Model", planeTransform.getModelMatrix());
-		planeMesh.draw();
-
-		//litShader.setMat4("_Model", cubeTransform.getModelMatrix());
-		
+		planeMesh.draw();		
 
 		//Draw light as a small sphere using unlit shader, ironically.
 		unlitShader.use();
@@ -448,100 +422,26 @@ int main() {
 
 		litShader.setFloat("_textureIntensity", textureIntensity);
 
-		if (isOn)
-		{
-			//Clearing Buffers
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		/*******************************************************/
+		//Clearing Buffers
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, colorBuffer);
-		}
-
-		
-
-		if (isOn)
-		{
-			PostProcessShader.use();
-
-			time = time * speed;
-			PostProcessShader.setInt("_Texture", 2);
-			PostProcessShader.setInt("_Switch", index);
-
-			//Fade to Black
-			PostProcessShader.setFloat("_Time", time);
-			
-			//Blur
-			PostProcessShader.setFloat("_Directions", directions);
-			PostProcessShader.setFloat("_Quality", quality);
-			PostProcessShader.setFloat("_Size", size);
-
-			quadMesh.draw();
-		}
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		/*******************************************************/
 
 		
+		/***********************************************/
+		PostProcessShader.use();
+		PostProcessShader.setInt("_Texture", 2);
 
-
+		quadMesh.draw();
+		/*************************************************/
 
 		//Draw UI
-		ImGui::Begin("Material");
-		ImGui::ColorEdit3("Material Color", &material.color.r);
-		ImGui::SliderFloat("Material Ambient K", &material.ambientK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Diffuse K", &material.diffuseK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Specular K", &material.specularK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Material Shininess", &material.shininess, 2.0f, 512.0f);
-		ImGui::End();
-
-		ImGui::Begin("Directional Light");
-		ImGui::DragFloat3("Directional Light Direction", &directionalLight.direction.x);
-		ImGui::SliderFloat("Directional Light Intensity", &directionalLight.intensity, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Directional Light Color", &directionalLight.color.r);
-		ImGui::End();
-
-		ImGui::Begin("Point Lights");
-		ImGui::SliderFloat("Point Light Intensity", &pointLights.intensity, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Linear", &pointLights.linearAttenuation, 0.0f, 1.0f);
-		ImGui::SliderFloat("Point Light Quadratic", &pointLights.quadractic, 0.0f, 1.0f);
-		ImGui::DragFloat3("Point Light position", &pointLights.position.x);
-		ImGui::ColorEdit3("Point Light Color", &pointLights.color.r);
-		ImGui::End();
-
-		ImGui::Begin("Spot Light");
-		ImGui::DragFloat3("Spot Light Position", &spotLight.position.x);
-		ImGui::DragFloat3("Spot Light Direction", &spotLight.direction.x);
-		ImGui::SliderFloat("Spot Light Intensity", &spotLight.intensity, 0.0f, 1.0f);
-		ImGui::ColorEdit3("Spot Light Color", &spotLight.color.r);
-		ImGui::SliderFloat("Spot Light Inner Angle", &spotLight.minAngle, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Outer Angle", &spotLight.maxAngle, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Angle Falloff", &spotLight.angleFallOff, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Linear", &spotLight.linearAttenuation, 0.0f, 100.0f);
-		ImGui::SliderFloat("Spot Light Quadractic", &spotLight.quadractic, 0.0f, 100.0f);
-		ImGui::End();
-
-		ImGui::Begin("Texture");
-		ImGui::SliderFloat("Normal Map Intensity", &textureIntensity, 0, 1);
-		ImGui::End();
+		ImGui::Begin("Transitioning style");
 		
-
-		//Draw UI
-		ImGui::Begin("Post Process");
-
-		ImGui::Checkbox("Switch", &isOn);
-		ImGui::Combo("Effect", &index, postProcess, IM_ARRAYSIZE(postProcess));
-
-		if (index == 2)
-		{
-			ImGui::SliderFloat("Speed", &speed, 0, 20);
-		}
-
-		if (index == 3)
-		{
-			ImGui::SliderFloat("Directions", &directions, 0.0f, 20.0f);
-			ImGui::SliderFloat("Quality", &quality, 0.0f, 10.0f);
-			ImGui::SliderFloat("Size", &size, 0.0f, 1.0f);
-		}
-		
-
 		ImGui::End();
 
 		ImGui::Render();
