@@ -108,6 +108,9 @@ struct FrameBuffer
 struct TransitionModifier
 {
 	float speed = 2.5;
+	float radius = 100.0;
+	float blur = 200.0;
+
 };
 
 struct TransitionStyle
@@ -250,7 +253,8 @@ int main() {
 	//Used to draw shapes. This is the shader you will be completing.
 	Shader litShader("shaders/defaultLit.vert", "shaders/defaultLit.frag");
 
-	Shader TransitionShader("shaders/Transitioning.vert", "shaders/Transitioning.frag");
+	Shader TransitionBurnShader("shaders/Transitioning.vert", "TransitionStyle/TransitionBurn.frag");
+	Shader TransitionLooneyShader("shaders/Transitioning.vert", "TransitionStyle/TransitionLooney.frag");
 	//Shader BlurShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Blur.frag");
 	//Shader FadeToBlackShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Fade_To_Black.frag");
 	//Shader SineThresholdEffectShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Sine_Threshold_Effect.frag");
@@ -451,12 +455,20 @@ int main() {
 
 		
 		/***********************************************/
-		TransitionShader.use();
-		TransitionShader.setInt("_Texture", 2);
+		/*TransitionBurnShader.use();
+		TransitionBurnShader.setInt("_Texture", 2);
 
 		time = time * transitionM.speed;
 
-		TransitionShader.setFloat("_Time", time);
+		TransitionBurnShader.setFloat("_Time", time);*/
+
+		TransitionLooneyShader.use();
+		TransitionLooneyShader.setInt("_Texture", 2);
+
+		TransitionLooneyShader.setFloat("_Time", time);
+		TransitionLooneyShader.setFloat("_Speed", transitionM.speed);
+		TransitionLooneyShader.setFloat("_Blur", transitionM.blur);
+		TransitionLooneyShader.setFloat("_Radius", transitionM.radius);
 
 
 		quadMesh.draw();
@@ -469,11 +481,22 @@ int main() {
 
 		ImGui::End();
 
+		/*if (transitionS.isBurn)
+		{
+			ImGui::Begin("Burning Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+
+			ImGui::End();
+		}*/
+
 		if (transitionS.isBurn)
 		{
 			ImGui::Begin("Burning Modifier");
 
 			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+			ImGui::SliderFloat("Blur", &transitionM.blur, 0.0, 200.0);
+			ImGui::SliderFloat("Radius", &transitionM.radius, 0.0, 100.0);
 
 			ImGui::End();
 		}
