@@ -114,9 +114,9 @@ struct TransitionStyle
 	bool isLooney = false;
 	bool isMelt = false;
 	bool isNoise = false;
-	bool isFilmBurn = false;
-	bool is2DBlock = false;
-	bool is2D = true;
+	bool isSwap = false;
+	bool is2DBlock = true;
+	bool is2D = false;
 };
 
 Material material;
@@ -215,7 +215,7 @@ int main() {
 	Shader TransitionLooneyShader("shaders/Transitioning.vert", "TransitionStyle/TransitionLooney.frag");
 	Shader TransitionScreenMeltShader("shaders/Transitioning.vert", "TransitionStyle/TransitionScreenMelt.frag");
 	Shader TransitionNoiseShader("shaders/Transitioning.vert", "TransitionStyle/TransitionNoise.frag");
-	Shader TransitionFilmBurnShader("shaders/Transitioning.vert", "TransitionStyle/TransitionFilmBurn.frag");
+	Shader TransitionSwapShader("shaders/Transitioning.vert", "TransitionStyle/TransitionSwap.frag");
 	Shader Transition2DBlockDissolveShader("shaders/Transitioning.vert", "TransitionStyle/Transition2DBlockDissolve.frag");
 	Shader Transition2DShader("shaders/Transitioning.vert", "TransitionStyle/Transition2D.frag");
 	Shader TransitionBoxFlipShader("shaders/Transitioning.vert", "TransitionStyle/Transition2D.frag");
@@ -227,10 +227,13 @@ int main() {
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 	const char* noise = "Texture/1k_Dissolve_Noise_Texture.png";
 	const char* smoke = "Texture/Smoke.png";
+	const char* grass = "Texture/Grass001_1K_Color.png";
 
 	GLuint texture = createTexture(woodFloorFile);
 	GLuint texture2 = createTexture(noise);
 	GLuint texture3 = createTexture(smoke);
+	GLuint texture4 = createTexture(bricksFile);
+	GLuint texture5 = createTexture(grass);
 
 
 	ew::MeshData cubeMeshData;
@@ -282,7 +285,6 @@ int main() {
 	lightTransform.scale = glm::vec3(0.5f);
 	lightTransform.position = glm::vec3(0.0f, 5.0f, 0.0f);
 
-	bool isOn = true;
 	/************************************************************************************/
 	unsigned int frameBufferObject;
 	unsigned int colorBuffer;
@@ -341,6 +343,12 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, texture3);
+
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, texture4);
+
+		glActiveTexture(GL_TEXTURE6);
+		glBindTexture(GL_TEXTURE_2D, texture5);
 
 		
 
@@ -418,7 +426,7 @@ int main() {
 
 		
 		/***********************************************/
-		if (transitionS.is2D && !transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise &&
+		if (transitionS.is2D && !transitionS.is2DBlock && !transitionS.isSwap && !transitionS.isNoise &&
 			!transitionS.isBurn && !transitionS.isMelt && !transitionS.isLooney)
 		{
 			Transition2DBlockDissolveShader.use();
@@ -432,7 +440,7 @@ int main() {
 			quadMesh.draw();
 		}
 
-		else if (transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise && 
+		else if (transitionS.is2DBlock && !transitionS.isSwap && !transitionS.isNoise && 
 				!transitionS.isBurn && !transitionS.isMelt && !transitionS.isLooney && !transitionS.is2D)
 		{
 			Transition2DBlockDissolveShader.use();
@@ -446,22 +454,22 @@ int main() {
 			quadMesh.draw();
 		}
 
-		else if (transitionS.isFilmBurn && !transitionS.isNoise && !transitionS.isBurn && 
+		else if (transitionS.isSwap && !transitionS.isNoise && !transitionS.isBurn && 
 				!transitionS.isMelt && !transitionS.isLooney && !transitionS.is2DBlock && !transitionS.is2D)
 		{
-			TransitionFilmBurnShader.use();
+			TransitionSwapShader.use();
 
 			time = time * transitionM.speed;
 
-			TransitionFilmBurnShader.setFloat("_Time", time);
-			TransitionFilmBurnShader.setInt("_Texture", 4);
-			TransitionFilmBurnShader.setInt("_Texture2", 2);
+			TransitionSwapShader.setFloat("_Time", time);
+			TransitionSwapShader.setInt("_Texture", 4);
+			TransitionSwapShader.setInt("_Texture2", 2);
 
 			quadMesh.draw();
 		}
 
 		else if (transitionS.isNoise && !transitionS.isBurn && !transitionS.isMelt && 
-				!transitionS.isLooney && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isLooney && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			TransitionNoiseShader.use();
 			TransitionNoiseShader.setInt("_Texture", 2);
@@ -476,11 +484,11 @@ int main() {
 		}
 
 		else if (transitionS.isMelt && !transitionS.isBurn && !transitionS.isNoise && 
-				!transitionS.isLooney && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isLooney && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			TransitionScreenMeltShader.use();
 			TransitionScreenMeltShader.setInt("_Texture", 2);
-			TransitionScreenMeltShader.setInt("_Texture2", 0);
+			TransitionScreenMeltShader.setInt("_Texture2", 6);
 
 			TransitionScreenMeltShader.setFloat("_Time", time);
 			TransitionScreenMeltShader.setFloat("_Speed", transitionM.speed);
@@ -491,7 +499,7 @@ int main() {
 		}
 
 		else if (transitionS.isLooney && !transitionS.isBurn && !transitionS.isMelt && 
-				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isNoise && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			TransitionLooneyShader.use();
 			TransitionLooneyShader.setInt("_Texture", 2);
@@ -505,7 +513,7 @@ int main() {
 		}
 
 		else if (transitionS.isBurn && !transitionS.isLooney && !transitionS.isNoise && 
-				!transitionS.isMelt && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isMelt && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			TransitionBurnShader.use();
 			TransitionBurnShader.setInt("_Texture", 2);
@@ -525,13 +533,13 @@ int main() {
 		ImGui::Checkbox("Circle Reveal", &transitionS.isLooney);
 		ImGui::Checkbox("Screen Melt", &transitionS.isMelt);
 		ImGui::Checkbox("Noise", &transitionS.isNoise);
-		ImGui::Checkbox("Film Burn", &transitionS.isFilmBurn);
+		ImGui::Checkbox("Swap", &transitionS.isSwap);
 		ImGui::Checkbox("Box Flip", &transitionS.isBoxFlip);
 		ImGui::Checkbox("2D Block Dissolve", &transitionS.is2DBlock);
 
 		ImGui::End();
 
-		if (transitionS.is2D && !transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise &&
+		if (transitionS.is2D && !transitionS.is2DBlock && !transitionS.isSwap && !transitionS.isNoise &&
 			!transitionS.isMelt && !transitionS.isBurn && !transitionS.isLooney)
 		{
 			ImGui::Begin("2D Modifier");
@@ -542,7 +550,7 @@ int main() {
 			ImGui::End();
 		}
 
-		else if (transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise && 
+		else if (transitionS.is2DBlock && !transitionS.isSwap && !transitionS.isNoise && 
 				!transitionS.isMelt && !transitionS.isBurn && !transitionS.isLooney && !transitionS.is2D)
 		{
 			ImGui::Begin("2D Block Modifier");
@@ -553,10 +561,10 @@ int main() {
 			ImGui::End();
 		}
 
-		else if (transitionS.isFilmBurn && !transitionS.isNoise && !transitionS.isMelt && 
+		else if (transitionS.isSwap && !transitionS.isNoise && !transitionS.isMelt && 
 				!transitionS.isBurn && !transitionS.isLooney && !transitionS.is2DBlock && !transitionS.is2D)
 		{
-			ImGui::Begin("Noise Modifier");
+			ImGui::Begin("Swap Modifier");
 
 			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
 
@@ -564,7 +572,7 @@ int main() {
 		}
 
 		else if (transitionS.isNoise && !transitionS.isMelt && !transitionS.isBurn && 
-				!transitionS.isLooney && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isLooney && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			ImGui::Begin("Noise Modifier");
 
@@ -575,7 +583,7 @@ int main() {
 		}
 
 		else if (transitionS.isMelt && !transitionS.isBurn && !transitionS.isLooney && 
-				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isNoise && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			ImGui::Begin("Screen Melt Modifier");
 
@@ -587,7 +595,7 @@ int main() {
 		}
 
 		else if (transitionS.isLooney && !transitionS.isBurn && !transitionS.isMelt && 
-				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isNoise && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			ImGui::Begin("Circle Reveal Modifier");
 
@@ -599,7 +607,7 @@ int main() {
 		}
 
 		else if (transitionS.isBurn && !transitionS.isLooney && !transitionS.isMelt && 
-				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+				!transitionS.isNoise && !transitionS.isSwap && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			ImGui::Begin("Burning Modifier");
 

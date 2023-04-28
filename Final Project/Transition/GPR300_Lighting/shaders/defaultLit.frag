@@ -184,5 +184,5 @@ void main(){
 	lightColor += CalculateDirectionalLights(_DirectionalLight, normal) + CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);
     
     
-    FragColor = vec4(color.x, color.y, color.z, 1.0f) * vec4(_Material.color * lightColor, 1);
+    FragColor = vec4(color.x, color.y, color.z, 1.0f);
 }
