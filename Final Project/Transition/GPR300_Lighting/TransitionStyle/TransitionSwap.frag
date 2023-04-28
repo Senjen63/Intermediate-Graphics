@@ -9,9 +9,9 @@ uniform sampler2D _Texture2;
 uniform float _Time;
 uniform float _Reflection;
 uniform float _Perspective;
-uniform float _depth;
+uniform float _Depth;
 
-//referenced by https://www.shadertoy.com/view/ltlBzn
+//referenced by https://www.shadertoy.com/view/MlXGzf
 
 const vec4 black = vec4(0.0, 0.0, 0.0, 1.0);
 const vec2 boundMin = vec2(0.0, 0.0);
@@ -49,6 +49,60 @@ vec4 bgColor (vec2 p, vec2 pfr, vec2 pto)
 }
 
 void main(){ 
+	float deltaTime = sin(_Time * .5) * .5 + .5;
 
+	vec2 pfr;
+	vec2 pto = vec2(-1.0);
+
+	float size = mix(1.0, _Depth, deltaTime);
+	float perspect = _Perspective * deltaTime;
+
+	pfr = (UV + vec2(-0.0, -0.5)) * vec2(size / (1.0 - _Perspective * deltaTime),
+	size / (1.0 - size * perspect * UV.x)) + vec2(0.0, 0.5);
+
+	size = mix(1.0, _Depth, 1.0 - deltaTime);
+
+	perspect = _Perspective * (1.0 - deltaTime);
+
+	pto = (UV + vec2(-1.0, -0.5)) * vec2(size / (1.0 - _Perspective * (1.0 - deltaTime)),
+	size / (1.0 - size * perspect * (0.5 - UV.x))) + vec2(1.0, 0.5);
+
+	bool Switch = deltaTime < 0.5;
+
+	if(Switch)
+	{
+		if(inBounds(pfr))
+		{
+			FragColor = texture(_Texture, pfr);
+		}
+
+		else if(inBounds(pto))
+		{
+			FragColor = texture(_Texture2, pto);
+		}
+
+		else
+		{
+			FragColor = bgColor(UV, pfr, pto);
+		}
+	}
+
+	else
+	{
+		if(inBounds(pto))
+		{
+			FragColor = texture(_Texture2, pto);
+		}
+
+		else if(inBounds(pfr))
+		{
+			FragColor = texture(_Texture, pfr);
+		}
+
+		else
+		{
+			FragColor = bgColor(UV, pfr, pto);
+		}
+	}
 	
 }

@@ -105,6 +105,9 @@ struct TransitionModifier
 	glm::vec3 color = glm::vec3(1.0, 0.0, 0.0);
 	float interval = 3.0; //seconds
 	float resolution = 0.1;
+	float reflection = 0.4;
+	float perspective = 0.2;
+	float depth = 3.0;
 };
 
 struct TransitionStyle
@@ -113,8 +116,8 @@ struct TransitionStyle
 	bool isLooney = false;
 	bool isMelt = false;
 	bool isNoise = false;
-	bool isSwap = false;
-	bool is2DBlock = true;
+	bool isSwap = true;
+	bool is2DBlock = false;
 };
 
 Material material;
@@ -442,8 +445,11 @@ int main() {
 			time = time * transitionM.speed;
 
 			TransitionSwapShader.setFloat("_Time", time);
-			TransitionSwapShader.setInt("_Texture", 4);
-			TransitionSwapShader.setInt("_Texture2", 2);
+			TransitionSwapShader.setInt("_Texture", 6);
+			TransitionSwapShader.setInt("_Texture2", 0);
+			TransitionSwapShader.setFloat("_Reflection", transitionM.reflection);
+			TransitionSwapShader.setFloat("_Perspective", transitionM.perspective);
+			TransitionSwapShader.setFloat("_Depth", transitionM.depth);
 
 			quadMesh.draw();
 		}
@@ -535,6 +541,9 @@ int main() {
 			ImGui::Begin("Swap Modifier");
 
 			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+			ImGui::SliderFloat("Reflection", &transitionM.reflection, 0.0, 10.0);
+			ImGui::SliderFloat("Perspective", &transitionM.perspective, 0.0, 10.0);
+			ImGui::SliderFloat("Depth", &transitionM.depth, 0.0, 10.0);
 
 			ImGui::End();
 		}
