@@ -223,16 +223,12 @@ int main() {
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
 	const char* woodFloorFile = "Texture/WoodFloor051_1K_Color.png";
-	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
 	const char* noise = "Texture/1k_Dissolve_Noise_Texture.png";
-	const char* smoke = "Texture/Smoke.png";
 	const char* grass = "Texture/Grass001_1K_Color.png";
 
 	GLuint texture = createTexture(woodFloorFile);
 	GLuint texture2 = createTexture(noise);
-	GLuint texture3 = createTexture(smoke);
-	GLuint texture4 = createTexture(bricksFile);
-	GLuint texture5 = createTexture(grass);
+	GLuint texture3 = createTexture(grass);
 
 
 	ew::MeshData cubeMeshData;
@@ -341,13 +337,7 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, texture3);
-
-		glActiveTexture(GL_TEXTURE5);
-		glBindTexture(GL_TEXTURE_2D, texture4);
-
-		glActiveTexture(GL_TEXTURE6);
-		glBindTexture(GL_TEXTURE_2D, texture5);		
+		glBindTexture(GL_TEXTURE_2D, texture3);	
 
 		//Draw
 		litShader.use();
@@ -445,7 +435,7 @@ int main() {
 			time = time * transitionM.speed;
 
 			TransitionSwapShader.setFloat("_Time", time);
-			TransitionSwapShader.setInt("_Texture", 6);
+			TransitionSwapShader.setInt("_Texture", 4);
 			TransitionSwapShader.setInt("_Texture2", 0);
 			TransitionSwapShader.setFloat("_Reflection", transitionM.reflection);
 			TransitionSwapShader.setFloat("_Perspective", transitionM.perspective);
@@ -474,7 +464,7 @@ int main() {
 		{
 			TransitionScreenMeltShader.use();
 			TransitionScreenMeltShader.setInt("_Texture", 2);
-			TransitionScreenMeltShader.setInt("_Texture2", 6);
+			TransitionScreenMeltShader.setInt("_Texture2", 4);
 
 			TransitionScreenMeltShader.setFloat("_Time", time);
 			TransitionScreenMeltShader.setFloat("_Speed", transitionM.speed);
