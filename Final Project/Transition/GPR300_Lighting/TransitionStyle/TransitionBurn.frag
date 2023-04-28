@@ -81,19 +81,4 @@ void main(){
     }
 
     FragColor = vec4(color, 1);
-
-    //None
-    //color = texture(_Texture,UV);
-    //FragColor = vec4(color.x, color.y, color.z, 1);
-    
-    //white
-    //color = texture(_Texture,UV);
-    //color = 1 -color;
-    //FragColor = vec4(color.x, color.y, color.z, 1);
-    
-
-    //Sine Threshold Effect
-    //float r = texture(_Texture,UV).r;
-    //float c = step(0.0f, sin(UV.x * 10.0f + r * 40.0f));
-    //FragColor = vec4(vec3(c), 1);
 }

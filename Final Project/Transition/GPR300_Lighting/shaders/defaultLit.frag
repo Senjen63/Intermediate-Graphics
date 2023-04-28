@@ -56,7 +56,6 @@ uniform int _NumberOfLight;
 uniform DirectionalLight _DirectionalLight;
 uniform PointLights _PointLights;
 uniform SpotLight _SpotLight;
-uniform float _textureIntensity;
 
 float GLFallOff(float linearAttenuation, float quadraticAttenuation, vec3 position)
 {
@@ -180,7 +179,6 @@ void main(){
     vec3 normal = texture(_NormalMap,v_out.UV).rgb;
     normal = normal * 2.0 - 1.0;
     normal = normalize(normal);
-	color.r = color.r * _textureIntensity;
 
 	lightColor += CalculatePointLight(_PointLights, normal);
 	lightColor += CalculateDirectionalLights(_DirectionalLight, normal) + CalculateSpotLight(_SpotLight, normal) * AngularAttenuation(_SpotLight);

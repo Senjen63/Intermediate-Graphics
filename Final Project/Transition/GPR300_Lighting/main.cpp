@@ -96,35 +96,28 @@ struct Material
 	float shininess = 64.0f;
 };
 
-struct FrameBuffer
-{
-	unsigned int frameBufferID;
-	unsigned int colorTextureID;
-	unsigned int renderBufferID;
-	unsigned int width;
-	unsigned int height;
-};
-
 struct TransitionModifier
 {
-	float speed = 2.5;
+	float startSpeed = 2.7;
+	float speed = 1.0;
 	float radius = 0.0;
 	float blur = 200.0;
-
+	glm::vec3 color = glm::vec3(1.0, 0.0, 0.0);
+	float interval = 3.0; //seconds
+	float resolution = 0.1;
 };
 
 struct TransitionStyle
 {
 	bool isBurn = false;
-	bool isZoomBlur = false;
-	bool isSwap = false;
-	bool isLooney = true;
+	bool isBoxFlip = false;
+	bool isLooney = false;
+	bool isMelt = false;
+	bool isNoise = false;
+	bool isFilmBurn = false;
+	bool is2DBlock = false;
+	bool is2D = true;
 };
-
-
-
-
-
 
 Material material;
 DirectionalLight directionalLight;
@@ -132,42 +125,6 @@ PointLights pointLights;
 SpotLight spotLight;
 TransitionModifier transitionM;
 TransitionStyle transitionS;
-
-FrameBuffer CreateFrameBuffer(unsigned int width, unsigned int height)
-{
-	FrameBuffer buffer{};
-
-
-	glGenFramebuffers(1, &buffer.frameBufferID);
-	glBindFramebuffer(GL_FRAMEBUFFER, buffer.frameBufferID);
-	glGenTextures(1, &buffer.colorTextureID);
-	glBindTexture(GL_TEXTURE_2D, buffer.colorTextureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer.colorTextureID, 0);
-
-	unsigned int renderBufferObject;
-
-	glGenRenderbuffers(1, &renderBufferObject);
-	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferObject);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32F, SCREEN_WIDTH, SCREEN_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBufferObject);
-
-	GLenum frameBufferObjectStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-	if (frameBufferObjectStatus != GL_FRAMEBUFFER_COMPLETE)
-	{
-		printf("Frame buffer is not Complete");
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	buffer.width = width;
-	buffer.height = height;
-
-	return buffer;
-}
 
 GLuint createTexture(const char* filePath)
 {
@@ -256,19 +213,25 @@ int main() {
 
 	Shader TransitionBurnShader("shaders/Transitioning.vert", "TransitionStyle/TransitionBurn.frag");
 	Shader TransitionLooneyShader("shaders/Transitioning.vert", "TransitionStyle/TransitionLooney.frag");
-	//Shader BlurShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Blur.frag");
-	//Shader FadeToBlackShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Fade_To_Black.frag");
-	//Shader SineThresholdEffectShader("shaders/PostProcess.vert", "PostProcessing(Effect)/Sine_Threshold_Effect.frag");
-	//Shader WhiteShader("shaders/PostProcess.vert", "PostProcessing(Effect)/White.frag");
+	Shader TransitionScreenMeltShader("shaders/Transitioning.vert", "TransitionStyle/TransitionScreenMelt.frag");
+	Shader TransitionNoiseShader("shaders/Transitioning.vert", "TransitionStyle/TransitionNoise.frag");
+	Shader TransitionFilmBurnShader("shaders/Transitioning.vert", "TransitionStyle/TransitionFilmBurn.frag");
+	Shader Transition2DBlockDissolveShader("shaders/Transitioning.vert", "TransitionStyle/Transition2DBlockDissolve.frag");
+	Shader Transition2DShader("shaders/Transitioning.vert", "TransitionStyle/Transition2D.frag");
+	Shader TransitionBoxFlipShader("shaders/Transitioning.vert", "TransitionStyle/Transition2D.frag");
 
 	//Used to draw light sphere
 	Shader unlitShader("shaders/defaultLit.vert", "shaders/unlit.frag");
 
 	const char* woodFloorFile = "Texture/WoodFloor051_1K_Color.png";
 	const char* bricksFile = "Texture/Bricks075A_1K_Color.png";
+	const char* noise = "Texture/1k_Dissolve_Noise_Texture.png";
+	const char* smoke = "Texture/Smoke.png";
 
 	GLuint texture = createTexture(woodFloorFile);
-	
+	GLuint texture2 = createTexture(noise);
+	GLuint texture3 = createTexture(smoke);
+
 
 	ew::MeshData cubeMeshData;
 	ew::createCube(1.0f, 1.0f, 1.0f, cubeMeshData);
@@ -278,7 +241,6 @@ int main() {
 	ew::createCylinder(1.0f, 0.5f, 64, cylinderMeshData);
 	ew::MeshData planeMeshData;
 	ew::createPlane(1.0f, 1.0f, planeMeshData);
-
 
 	ew::Mesh cubeMesh(&cubeMeshData);
 	ew::Mesh sphereMesh(&sphereMeshData);
@@ -301,8 +263,6 @@ int main() {
 	//Enable depth testing
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-
-	
 
 	//Initialize shape transforms
 	ew::Transform cubeTransform;
@@ -354,8 +314,6 @@ int main() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/***************************************************************************************/
 
-	float textureIntensity = 1.0f;
-
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -377,6 +335,12 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, texture3);
 
 		
 
@@ -443,8 +407,6 @@ int main() {
 		lightColor = pointLights.color;
 		lightTransform.position = pointLights.position;
 
-		litShader.setFloat("_textureIntensity", textureIntensity);
-
 		/*******************************************************/
 		//Clearing Buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -456,8 +418,80 @@ int main() {
 
 		
 		/***********************************************/
+		if (transitionS.is2D && !transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise &&
+			!transitionS.isBurn && !transitionS.isMelt && !transitionS.isLooney)
+		{
+			Transition2DBlockDissolveShader.use();
 
-		if (transitionS.isLooney && !transitionS.isBurn)
+			time = time * transitionM.speed;
+
+
+			Transition2DBlockDissolveShader.setFloat("_Time", time);
+			Transition2DBlockDissolveShader.setFloat("_Resolution", transitionM.resolution);
+
+			quadMesh.draw();
+		}
+
+		else if (transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise && 
+				!transitionS.isBurn && !transitionS.isMelt && !transitionS.isLooney && !transitionS.is2D)
+		{
+			Transition2DBlockDissolveShader.use();
+
+			time = time * transitionM.speed;
+
+
+			Transition2DBlockDissolveShader.setFloat("_Time", time);
+			Transition2DBlockDissolveShader.setFloat("_Resolution", transitionM.resolution);
+
+			quadMesh.draw();
+		}
+
+		else if (transitionS.isFilmBurn && !transitionS.isNoise && !transitionS.isBurn && 
+				!transitionS.isMelt && !transitionS.isLooney && !transitionS.is2DBlock && !transitionS.is2D)
+		{
+			TransitionFilmBurnShader.use();
+
+			time = time * transitionM.speed;
+
+			TransitionFilmBurnShader.setFloat("_Time", time);
+			TransitionFilmBurnShader.setInt("_Texture", 4);
+			TransitionFilmBurnShader.setInt("_Texture2", 2);
+
+			quadMesh.draw();
+		}
+
+		else if (transitionS.isNoise && !transitionS.isBurn && !transitionS.isMelt && 
+				!transitionS.isLooney && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+		{
+			TransitionNoiseShader.use();
+			TransitionNoiseShader.setInt("_Texture", 2);
+			TransitionNoiseShader.setInt("_Blank", 9);
+			TransitionNoiseShader.setInt("_Noise", 3);
+
+			TransitionNoiseShader.setFloat("_Time", time);
+			TransitionNoiseShader.setFloat("_Speed", transitionM.speed);
+			TransitionNoiseShader.setVec3("_Color", transitionM.color);
+
+			quadMesh.draw();
+		}
+
+		else if (transitionS.isMelt && !transitionS.isBurn && !transitionS.isNoise && 
+				!transitionS.isLooney && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+		{
+			TransitionScreenMeltShader.use();
+			TransitionScreenMeltShader.setInt("_Texture", 2);
+			TransitionScreenMeltShader.setInt("_Texture2", 0);
+
+			TransitionScreenMeltShader.setFloat("_Time", time);
+			TransitionScreenMeltShader.setFloat("_Speed", transitionM.speed);
+			TransitionScreenMeltShader.setFloat("_StartSpeed", transitionM.startSpeed);
+			TransitionScreenMeltShader.setFloat("_Restart", transitionM.interval);
+
+			quadMesh.draw();
+		}
+
+		else if (transitionS.isLooney && !transitionS.isBurn && !transitionS.isMelt && 
+				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			TransitionLooneyShader.use();
 			TransitionLooneyShader.setInt("_Texture", 2);
@@ -470,7 +504,8 @@ int main() {
 			quadMesh.draw();
 		}
 
-		else if (transitionS.isBurn && !transitionS.isLooney)
+		else if (transitionS.isBurn && !transitionS.isLooney && !transitionS.isNoise && 
+				!transitionS.isMelt && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			TransitionBurnShader.use();
 			TransitionBurnShader.setInt("_Texture", 2);
@@ -481,13 +516,6 @@ int main() {
 
 			quadMesh.draw();
 		}
-		
-		
-
-		
-
-
-		//quadMesh.draw();
 		/*************************************************/
 
 		//Draw UI
@@ -495,10 +523,71 @@ int main() {
 
 		ImGui::Checkbox("Burning", &transitionS.isBurn);
 		ImGui::Checkbox("Circle Reveal", &transitionS.isLooney);
+		ImGui::Checkbox("Screen Melt", &transitionS.isMelt);
+		ImGui::Checkbox("Noise", &transitionS.isNoise);
+		ImGui::Checkbox("Film Burn", &transitionS.isFilmBurn);
+		ImGui::Checkbox("Box Flip", &transitionS.isBoxFlip);
+		ImGui::Checkbox("2D Block Dissolve", &transitionS.is2DBlock);
 
 		ImGui::End();
 
-		if (transitionS.isLooney && !transitionS.isBurn)
+		if (transitionS.is2D && !transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise &&
+			!transitionS.isMelt && !transitionS.isBurn && !transitionS.isLooney)
+		{
+			ImGui::Begin("2D Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+			ImGui::SliderFloat("Resolution", &transitionM.resolution, 0.0, 1.0);
+
+			ImGui::End();
+		}
+
+		else if (transitionS.is2DBlock && !transitionS.isFilmBurn && !transitionS.isNoise && 
+				!transitionS.isMelt && !transitionS.isBurn && !transitionS.isLooney && !transitionS.is2D)
+		{
+			ImGui::Begin("2D Block Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+			ImGui::SliderFloat("Resolution", &transitionM.resolution, 0.0, 1.0);
+
+			ImGui::End();
+		}
+
+		else if (transitionS.isFilmBurn && !transitionS.isNoise && !transitionS.isMelt && 
+				!transitionS.isBurn && !transitionS.isLooney && !transitionS.is2DBlock && !transitionS.is2D)
+		{
+			ImGui::Begin("Noise Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+
+			ImGui::End();
+		}
+
+		else if (transitionS.isNoise && !transitionS.isMelt && !transitionS.isBurn && 
+				!transitionS.isLooney && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+		{
+			ImGui::Begin("Noise Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+			ImGui::ColorEdit3("Color", &transitionM.color.r);
+
+			ImGui::End();
+		}
+
+		else if (transitionS.isMelt && !transitionS.isBurn && !transitionS.isLooney && 
+				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
+		{
+			ImGui::Begin("Screen Melt Modifier");
+
+			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
+			ImGui::SliderFloat("Start Speed", &transitionM.startSpeed, 0.0, 10.0);
+			ImGui::SliderFloat("Restart Interval", &transitionM.interval, 0.0, 9.0);
+
+			ImGui::End();
+		}
+
+		else if (transitionS.isLooney && !transitionS.isBurn && !transitionS.isMelt && 
+				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			ImGui::Begin("Circle Reveal Modifier");
 
@@ -509,16 +598,15 @@ int main() {
 			ImGui::End();
 		}
 
-		else if (transitionS.isBurn && !transitionS.isLooney)
+		else if (transitionS.isBurn && !transitionS.isLooney && !transitionS.isMelt && 
+				!transitionS.isNoise && !transitionS.isFilmBurn && !transitionS.is2DBlock && !transitionS.is2D)
 		{
 			ImGui::Begin("Burning Modifier");
 
 			ImGui::SliderFloat("Speed", &transitionM.speed, 0.0, 10.0);
 
 			ImGui::End();
-		}
-
-		
+		}		
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
