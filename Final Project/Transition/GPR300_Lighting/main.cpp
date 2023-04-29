@@ -311,6 +311,13 @@ int main() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	/***************************************************************************************/
 
+	const char* style[6] =
+	{
+		"Burning", "Circle Reveal", "Screen Melt", "Noise", "Swap", "2D Block Dissolve",
+	};
+
+	int index = 0;
+
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		glClearColor(bgColor.r,bgColor.g,bgColor.b, 1.0f);
@@ -505,12 +512,7 @@ int main() {
 		//Draw UI
 		ImGui::Begin("Transitioning style");
 
-		ImGui::Checkbox("Burning", &transitionS.isBurn);
-		ImGui::Checkbox("Circle Reveal", &transitionS.isLooney);
-		ImGui::Checkbox("Screen Melt", &transitionS.isMelt);
-		ImGui::Checkbox("Noise", &transitionS.isNoise);
-		ImGui::Checkbox("Swap", &transitionS.isSwap);
-		ImGui::Checkbox("2D Block Dissolve", &transitionS.is2DBlock);
+		ImGui::Combo("Style", &index, style, IM_ARRAYSIZE(style));
 
 		ImGui::End();
 
