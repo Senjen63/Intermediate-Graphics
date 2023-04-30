@@ -304,7 +304,7 @@ int main() {
 		"Burning", "Circle Reveal", "Screen Melt", "Noise", "Swap", "2D Block Dissolve",
 	};
 
-	int index = 3;
+	int index = 0;
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
