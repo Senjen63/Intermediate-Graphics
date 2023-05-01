@@ -14,11 +14,9 @@ uniform float _Speed;
 //referenced by https://www.shadertoy.com/view/Mld3DN
 
 void main(){ 
-    vec4 color = vec4(1.0, 0.0, 0.0, 0.5);
     vec4 foreward = texture(_Texture, UV);
     vec4 back = texture(_Blank, UV);
     vec4 noise = texture(_Noise, UV / 5.0);
-    vec4 light = color;
 
     float offset;
 
