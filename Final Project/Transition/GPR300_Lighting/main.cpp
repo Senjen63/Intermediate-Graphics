@@ -107,6 +107,7 @@ struct TransitionModifier
 	float reflection = 0.4;
 	float perspective = 0.2;
 	float depth = 3.0;
+	glm::vec3 color = glm::vec3(0.0, 0.0, 0.0);
 };
 
 Material material;
@@ -433,6 +434,7 @@ int main() {
 			TransitionSwapShader.setFloat("_Reflection", transitionM.reflection);
 			TransitionSwapShader.setFloat("_Perspective", transitionM.perspective);
 			TransitionSwapShader.setFloat("_Depth", transitionM.depth);
+			TransitionSwapShader.setVec3("_Background", transitionM.color);
 
 			quadMesh.draw();
 		}
@@ -515,6 +517,7 @@ int main() {
 			ImGui::SliderFloat("Reflection", &transitionM.reflection, 0.0, 10.0);
 			ImGui::SliderFloat("Perspective", &transitionM.perspective, 0.0, 10.0);
 			ImGui::SliderFloat("Depth", &transitionM.depth, 0.0, 10.0);
+			ImGui::ColorEdit3("Background", &transitionM.color.r);
 
 			ImGui::End();
 		}
